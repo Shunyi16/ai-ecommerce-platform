@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List
 from decimal import Decimal
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
@@ -14,6 +14,8 @@ class User(SQLModel, table=True):
     # Automatically generates the timestamp when a user is created
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+    order: List["Order"] = Relationship(back_populates="user")
+
 class Product(SQLModel, table=True):
     __tablename__ = "products"
 
@@ -23,3 +25,29 @@ class Product(SQLModel, table=True):
     price: Decimal = Field(max_digits=10, decimal_places=2)
     inventory_count: int = Field(default=0)
     image_url: Optional[str] = Field(default=None)
+
+    order_items: List["OrderItem"] = Relationship(back_populates="product")
+
+class Order(SQLModel, table=True):
+    __tablename__ = "orders"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.id")
+    total_price: Decimal = Field(max_digits=10, decimal_places=2)
+    status: str = Field(default="pending")
+    create_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    user: "User" = Relationship(back_populates="order")
+    items: List["OrderItem"] = Relationship(back_populates="order")
+
+class OrderItem(SQLModel, table=True):
+    __tablename__ = "orderItems"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    order_id: int = Field(foreign_key="orders.id")
+    product_id: int = Field(foreign_key="products.id")
+    price_at_purchase: Decimal = Field(max_digits=10, decimal_places=2)
+    quantity: int = Field(default=1)
+
+    order: "Order" = Relationship(back_populates="items")
+    product: "Product" = Relationship(back_populates="order_items")
