@@ -2,6 +2,14 @@ from datetime import datetime, timezone
 from typing import Optional, List
 from decimal import Decimal
 from sqlmodel import SQLModel, Field, Relationship
+from enum import Enum
+
+class OrderStatus(str,Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    SHIPPED = "shipped"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
@@ -34,7 +42,7 @@ class Order(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id")
     total_price: Decimal = Field(max_digits=10, decimal_places=2)
-    status: str = Field(default="pending")
+    status: OrderStatus = Field(default=OrderStatus.PENDING)
     create_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     user: "User" = Relationship(back_populates="order")
