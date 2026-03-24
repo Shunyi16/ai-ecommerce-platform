@@ -112,15 +112,57 @@ def read_orders():
         orders = session.exec(statement).all()
         return orders
 
+@app.get("/orders/{order_id}")
+def read_order_total_price(order_id:int):
+    with Session(engine) as session:
+        order = session.get(Order, order_id)
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        statement = select(OrderItem).where(OrderItem.order_id == order_id)
+        items = session.exec(statement).all()
+        total_price = 0
+        for item in items:
+            total_price += item.price_at_purchase * item.quantity
+
+        return {
+            "order_details": order,
+            "items": items,
+            "total_price": total_price
+        }
+
 # Create items of the order
 @app.post("/items")
-def create_items(items: OrderItem):
+def create_item(item: OrderItem):
     # Open a connection
     with Session(engine) as session:
-        session.add(items)
+        product = session.get(Product,item.product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        if product.inventory_count < item.quantity:
+            raise HTTPException(status_code=404, detail="Product low in stock")
+        product.inventory_count -= item.quantity
+        session.add(item)
+        session.add(product)
         session.commit()
-        session.refresh(items)
-        return items
+        session.refresh(item)
+        return item
+    
+# Remove item from cart
+@app.delete("/items/{item_id}")
+def remove_item_from_cart(item_id:int):
+    with Session(engine) as session:
+        item = session.get(OrderItem,item_id)
+        if not item:
+            raise HTTPException(status_code=404, detail= "Item not found in cart")
+        
+        product = session.get(Product,item.product_id)
+        if product:
+            product.inventory_count += item.quantity
+            session.add(product)
+        
+        session.delete(item)
+        session.commit()
+        return {"message" : "Item removed and inventory restored"}
 
 # Read items from an order
 @app.get("/items")
