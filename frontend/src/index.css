@@ -1,108 +1,121 @@
+/* :root acts as the "Global Memory" for CSS. These are variables you can use anywhere. */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --text: #08060d; /* Default text color  */
+  --text-h: #08060d; /* Header text color */
+  --bg: #f8f6f2fe; /* Background color (white) */
+  --border: #e5e4e7; /* Border color (light gray) */
+  --code-bg: #f4f3ec; /* Background for code blocks */
+  --accent: #a8f584; /* Primary brand color (light green) */
+  --accent-bg: rgba(170, 59, 255, 0.1); /* Faded purple for backgrounds */
+  --accent-border: rgba(170, 59, 255, 0.5); /* Semi-transparent purple for borders */
+  --social-bg: rgba(244, 243, 236, 0.5); /* Background for social media buttons */
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px; /* 3D drop-shadow effect */
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif; /* Standard modern font list */
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif; /* Font for headers */
+  --mono: ui-monospace, Consolas, monospace; /* Typewriter font for code */
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Applying the variables above to the whole webpage */
+  font: 18px/145% var(--sans); /* Sets default font size to 18px and line-height to 145% */
+  letter-spacing: 0.18px; /* Spaces letters out slightly */
+  color-scheme: light dark; /* Tells the browser this site supports both light and dark modes */
+  color: var(--text); /* Applies the --text color from above */
+  background: var(--bg); /* Applies the --bg color from above */
+  font-synthesis: none; /* Stops browsers from faking bold/italic if the font doesn't have it */
+  text-rendering: optimizeLegibility; /* Makes text look sharper */
+  -webkit-font-smoothing: antialiased; /* Smoothes text on Mac/iOS */
+  -moz-osx-font-smoothing: grayscale; /* Smoothes text on Firefox */
 
+  /* If the screen is smaller than 1024px (tablets/phones), shrink the font to 16px */
   @media (max-width: 1024px) {
     font-size: 16px;
   }
 }
 
-@media (prefers-color-scheme: dark) {
+/* This block ONLY runs if the user's computer is set to "Dark Mode" */
+
+@media (prefers-color-scheme: disable) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
+    /* Overwrites the light variables with dark ones! */
+    --text: #9ca3af; /* Lighter gray text */
+    --text-h: #f3f4f6; /* Almost white headers */
+    --bg: #16171d; /* Very dark blue/gray background */
+    --border: #2e303a; /* Dark gray borders */
+    --code-bg: #1f2028; /* Dark code background */
+    --accent: #c084fc; /* Lighter, neon purple */
+    --accent-bg: rgba(192, 132, 252, 0.15); 
     --accent-border: rgba(192, 132, 252, 0.5);
     --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+    --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px; /* Darker shadows */
   }
-
+  
+  /* Inverts social media icons so black icons become white in dark mode */
   #social .button-icon {
     filter: invert(1) brightness(2);
   }
 }
 
+/* Removes the default white margin all browsers put around the edge of the screen */
 body {
   margin: 0;
 }
 
+/* This targets the <div id="root"> that React automatically creates to hold your app */
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  width: 1126px; /* Forces the box to be exactly 1126px wide */
+  max-width: 100%; /* Prevents it from breaking on small screens */
+  margin: 0 auto; /* Centers the box perfectly in the middle of the screen */
+  text-align: center; /* Centers all text inside it */
+  border-inline: 1px solid var(--border); /* Puts a vertical line on the left and right edges */
+  min-height: 100svh; /* Forces the box to be at least as tall as the screen */
+  display: flex; /* Turns on "Flexbox" layout mode */
+  flex-direction: column; /* Stacks items top-to-bottom instead of left-to-right */
+  box-sizing: border-box; /* Ensures padding doesn't make the box wider than 100% */
 }
 
-h1,
-h2 {
+/* Styling for Header 1 and Header 2 */
+h1, h2 {
   font-family: var(--heading);
   font-weight: 500;
   color: var(--text-h);
 }
 
+/* Specific styling for Header 1 */
 h1 {
   font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
+  letter-spacing: -1.68px; /* Squeezes letters slightly closer together */
+  margin: 32px 0; /* Adds 32px of space above and below */
   @media (max-width: 1024px) {
-    font-size: 36px;
+    font-size: 36px; /* Shrinks on phones */
     margin: 20px 0;
   }
 }
+
+/* Specific styling for Header 2 */
 h2 {
   font-size: 24px;
   line-height: 118%;
   letter-spacing: -0.24px;
-  margin: 0 0 8px;
+  margin: 0 0 8px; /* Adds 8px space below */
   @media (max-width: 1024px) {
-    font-size: 20px;
+    font-size: 20px; /* Shrinks on phones */
   }
 }
+
+/* Removes default margins from paragraphs so you can control spacing manually */
 p {
   margin: 0;
 }
 
-code,
-.counter {
+/* Styles specifically for <code> tags or things with className="counter" */
+code, .counter {
   font-family: var(--mono);
   display: inline-flex;
   border-radius: 4px;
   color: var(--text-h);
 }
 
+/* Specific styling for <code> blocks */
 code {
   font-size: 15px;
   line-height: 135%;
