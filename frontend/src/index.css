@@ -2,7 +2,7 @@
 :root {
   --text: #08060d; /* Default text color  */
   --text-h: #08060d; /* Header text color */
-  --bg: #f8f6f2fe; /* Background color (white) */
+  --bg: #ffffff; /* Background color (white) */
   --border: #e5e4e7; /* Border color (light gray) */
   --code-bg: #f4f3ec; /* Background for code blocks */
   --accent: #a8f584; /* Primary brand color (light green) */
