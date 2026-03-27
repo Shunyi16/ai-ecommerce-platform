@@ -10,3 +10,8 @@ frontend/dist/
 backend/__pycache__/
 backend/venv/
 backend/.env
+.vscode/
+*.sql
+__pycache__/
+.venv/
+.DS_Store
