@@ -1,7 +1,7 @@
 /* :root acts as the "Global Memory" for CSS. These are variables you can use anywhere. */
 :root {
   --text: #08060d; /* Default text color  */
-  --text-h: #08060d; /* Header text color */
+  --text-h: #002d00; /* Header text color */
   --bg: #ffffff; /* Background color (white) */
   --border: #e5e4e7; /* Border color (light gray) */
   --code-bg: #f4f3ec; /* Background for code blocks */
@@ -85,6 +85,7 @@ h1 {
   font-size: 56px;
   letter-spacing: -1.68px; /* Squeezes letters slightly closer together */
   margin: 32px 0; /* Adds 32px of space above and below */
+  word-spacing: 10px;
   @media (max-width: 1024px) {
     font-size: 36px; /* Shrinks on phones */
     margin: 20px 0;

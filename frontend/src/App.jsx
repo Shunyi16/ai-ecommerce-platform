@@ -13,7 +13,7 @@ function App() {
 
   return (
     <div style={{ padding: "40px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto", color: "white" }}>
-      <h1>AI Keyboard Store ⌨️</h1>
+      <h1>Beautiful Lamps</h1>
       
       {/* Loop through the database products and draw them */}
       <div style={{ display: "grid", gap: "20px" }}>
