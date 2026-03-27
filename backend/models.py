@@ -33,6 +33,7 @@ class Product(SQLModel, table=True):
     price: Decimal = Field(max_digits=10, decimal_places=2)
     inventory_count: int = Field(default=0)
     image_url: Optional[str] = Field(default=None)
+    is_active: bool = Field(default=True)
 
     order_items: List["OrderItem"] = Relationship(back_populates="product")
 
@@ -49,7 +50,7 @@ class Order(SQLModel, table=True):
     items: List["OrderItem"] = Relationship(back_populates="order")
 
 class OrderItem(SQLModel, table=True):
-    __tablename__ = "orderItems"
+    __tablename__ = "order_items"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     order_id: int = Field(foreign_key="orders.id")

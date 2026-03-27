@@ -41,7 +41,9 @@ def delete_product(product_id:int):
         product_delete = session.get(Product, product_id)
         if not product_delete:
             raise HTTPException(status_code=404, detail="Product not found")
-        session.delete(product_delete)
+        # SOFT DELETE: Hide it, don't erase it!
+        product_delete.is_active = False
+        session.add(product_delete)
         session.commit()
         return {"message" : f"Product {product_id} deleted successfully"}
 
@@ -49,7 +51,7 @@ def delete_product(product_id:int):
 @router.get("/")
 def read_products():
     with Session(engine) as session:
-        statement = select(Product)
+        statement = select(Product).where(Product.is_active == True)
         products = session.exec(statement).all()
         return products
     
