@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from database import create_db_and_tables
 from routers import users, products, orders, items
 
@@ -6,6 +7,14 @@ app = FastAPI(
     title="AI Keyboard E-Commerce API",
     description="The complete backend for managing products, carts, and users.",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # This allows requests from ANY origin. (You can lock this down later)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (GET, POST, PUT, DELETE)
+    allow_headers=["*"],  # Allows all headers
 )
 
 
