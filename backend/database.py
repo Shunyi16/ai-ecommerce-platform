@@ -1,5 +1,6 @@
 #create_engine: plugs Python into PostgreSQL
 from sqlmodel import SQLModel, create_engine
+import models # noqa: F401 (This tells linters: "I'm importing this on purpose!")
 
 # 2. This tells Python exactly where the database lives
 # Format: postgresql://[user]:[password]@[host]/[database_name]

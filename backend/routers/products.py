@@ -1,66 +1,40 @@
+# products.py (Revised)
 from fastapi import APIRouter, HTTPException
 from sqlmodel import Session, select
 from database import engine
-from models import Product
+from models import Product, ProductCreate, ProductRead, ProductUpdate # New Imports
 
-router = APIRouter(
-    prefix = "/products",
-    tags = ["Products"]
-)
+router = APIRouter(prefix="/products", tags=["Products"])
 
-# Create a product
-@router.post("/")
-def create_product(product: Product):
-    # Open a connection
+@router.post("/", response_model=ProductRead)
+def create_product(product: ProductCreate):
     with Session(engine) as session:
-        session.add(product)
+        # Convert the "Create" DTO into the "Database" Model
+        db_product = Product.model_validate(product)
+        session.add(db_product)
         session.commit()
-        session.refresh(product)
-        return product
-    
-# Update a product
-@router.patch("/{product_id}")
-def update_product(product_id: int, product_update:Product):
-    # Open a connection
+        session.refresh(db_product)
+        return db_product
+
+@router.patch("/{product_id}", response_model=ProductRead)
+def update_product(product_id: int, product_update: ProductUpdate):
     with Session(engine) as session:
         db_product = session.get(Product, product_id)
         if not db_product:
             raise HTTPException(status_code=404, detail="Product not found")
         
+        # Only update the fields that were actually sent in the request
         update_data = product_update.model_dump(exclude_unset=True)        
         db_product.sqlmodel_update(update_data)
+        
         session.add(db_product)
         session.commit()
         session.refresh(db_product)
         return db_product
-    
-# Delete a product
-@router.delete("/{product_id}")
-def delete_product(product_id:int):
-    with Session(engine) as session:
-        product_delete = session.get(Product, product_id)
-        if not product_delete:
-            raise HTTPException(status_code=404, detail="Product not found")
-        # SOFT DELETE: Hide it, don't erase it!
-        product_delete.is_active = False
-        session.add(product_delete)
-        session.commit()
-        return {"message" : f"Product {product_id} deleted successfully"}
 
-# Read products
-@router.get("/")
+@router.get("/", response_model=list[ProductRead])
 def read_products():
     with Session(engine) as session:
-        statement = select(Product).where(Product.is_active == True)
-        products = session.exec(statement).all()
-        return products
-    
-# Read a product
-@router.get("/{product_id}")
-def read_a_product(product_id: int):
-    with Session(engine) as session:
-        product = session.get(Product, product_id)
-
-        if not product:
-            raise HTTPException(status_code=404, detail="Product not found")
-        return product
+        # Note: We filter for active products here!
+        statement = select(Product).where(Product.is_active == True).order_by(Product.id)
+        return session.exec(statement).all()
