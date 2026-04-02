@@ -42,11 +42,13 @@ export default function Navbar({cartCount,itemOnClick }){
                 borderBottom: "1px solid #eaeaea",
                 marginBottom: "20px",
             }}>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> option 1 </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> option 2 </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> option 3 </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> option 4 </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> option 5 </span>
+                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Ceiling Lights </span>
+                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Lamps </span>
+                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Ceiling Fans </span>
+                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Outdoor Lights </span>
+                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Wall Lights </span>
+                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Decor </span>
+                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px", color: "red"}}> Sale </span>
             </nav>
         </header>
     );
