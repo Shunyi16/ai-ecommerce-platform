@@ -2,43 +2,96 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import Session, select
 from database import engine
 from models import Order, OrderItem, Product, OrderRead, OrderCreate, OrderItemCreate
+from sqlalchemy.orm import selectinload
 
 router = APIRouter(
     prefix = "/orders",
     tags = ["Orders & Items"]
 )
 
-
-# --- ITEM MANAGEMENT (Sub-resources of Orders) ---
-
-# add_item_to_order
+# customer add an item to the cart
 @router.post("/items", response_model=OrderItem)
-def add_item_to_order(item: OrderItemCreate):
+def add_item_to_cart(item_data: OrderItemCreate):
     # Open a connection
     with Session(engine) as session:
-        product = session.get(Product,item.product_id)
+        # 1. Check Product & Inventory
+        product = session.get(Product,item_data.product_id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
-        if product.inventory_count < item.quantity:
+        if product.inventory_count < item_data.quantity:
             raise HTTPException(status_code=400, detail="Product low in stock")
-        # Update Inventory
-        product.inventory_count -= item.quantity
+        
+        # find an existing or create the order id
+        statement = select(Order).where(
+            Order.user_id == item_data.user_id,
+            Order.status == "cart" # Look for the unpaid draft order
+        )
+        exist_order = session.exec(statement).first()
+        # not no existing order id, create a new row w/ id, user_id, and status in Order table) 
+        if not exist_order:
+            exist_order = Order(user_id = item_data.user_id, status = "cart")
+            session.add(exist_order)
+            session.commit()
+            session.refresh(exist_order)
 
-        db_item = OrderItem.model_validate(item)
+        # 3. Create the item and link it DIRECTLY to the order_id
+        db_item = OrderItem(
+            order_id = exist_order.id, # <--- Link established immediately, From backend logic
+            product_id = item_data.product_id, # <--- From the frontend
+            quantity = item_data.quantity, # <--- From the frontend
+            price_at_purchase = item_data.price_at_purchase # <--- From the frontend
+        )
+
+        # 4. Update Inventory
+        product.inventory_count -= item_data.quantity
+
+        # don't need this anymore, just leave it for reference. 
+        #It takes the "pure data" from frontend (item, which is an OrderItemCreate
+        #  schema) and converts it into a full database-ready object 
+        # (db_item, which is an OrderItem table model)
+        # db_item = OrderItem.model_validate(item_data) 
+        
+        # session.add() means Track this object for the next commit
+        # tell database to get ready to insert a new row in order_items table
         session.add(db_item)
+
+        # tell database to get ready to update the products table
         session.add(product)
+
         session.commit()
+
+        # after commiting, an id is generated, refresh the order_items table
+        #  to show the id to customer
         session.refresh(db_item)
         return db_item
+    
+    
+# customer reviews the cart
+@router.get("/cart/{user_id}", response_model= list[OrderItem])
+def view_cart(user_id : int):
+    with Session(engine) as session:
+        statement = select(Order).where(
+            Order.user_id == user_id,
+            Order.status == "cart")
+        cart_order = session.exec(statement).first() # return a single object
+        if not cart_order:
+            return []
+        # a sigle object has .items attribute
+        return cart_order.items
+    
 
-# Remove item from cart
+# customer remove an item from cart
 @router.delete("/items/{item_id}")
 def remove_item(item_id:int):
     with Session(engine) as session:
         item = session.get(OrderItem,item_id)
         if not item:
             raise HTTPException(status_code=404, detail= "Item not found in cart")
-        
+
+        # 2. Security Check: Is this item part of an active cart? 
+        if item.order.status != "cart":
+            raise HTTPException(status_code=400, detail="Cannot remove items from a finalized order")
+
         # Restore Inventory
         product = session.get(Product,item.product_id)
         if product:
@@ -47,62 +100,72 @@ def remove_item(item_id:int):
         
         session.delete(item)
         session.commit()
-        return {"message" : "Item removed and inventory restored"}
+        return {"message": "Item successfully removed from cart"}
     
-# Read items from an order
-@router.get("/")
-def read_items():
-    with Session(engine) as session:
-        statement = select(OrderItem)
-        items = session.exec(statement).all()
-        return items
 
-# -------------------------- ORDER MANAGEMENT -----------------------------
-# Create an order
-@router.post("/",response_model=OrderRead)
+# Customer place an order ----------
+@router.post("/checkout",response_model=OrderRead)
 def create_order(order: OrderCreate):
     # Open a connection
     with Session(engine) as session:
-        db_order = Order.model_validate(order) # Convert DTO to DB Model
+        # 1. find the items that are in cart
+        statement = select(Order).where(
+            Order.user_id == order.user_id,
+            Order.status == "cart"
+        ).options(selectinload(Order.items)) # Order.items (The Class Attribute): Used BEFORE the query runs. It acts as a map or an instruction for the database engine.
+        # .first() return a single order object
+        db_order = session.exec(statement).first() 
+
+        if not db_order:
+            raise HTTPException(status_code=400, detail="No active cart found for this user")
+
+        db_order.status = "pending"
+
         session.add(db_order)
         session.commit()
         session.refresh(db_order)
         return db_order
+    
 
-# Read single order    
+# Customer review an order  
 @router.get("/{order_id}", response_model=OrderRead)
 def read_single_order(order_id: int):
     with Session(engine) as session:
-        order = session.get(Order, order_id)
+        statement = select(Order).where(
+            Order.id == order_id,
+            Order.status != "cart"
+        ).options(selectinload(Order.items))
+        # Use .first() to get the single object which is what response_model expects
+        order = session.exec(statement).first()
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
-        
-        # Note: If your OrderRead schema includes an 'items' list, 
-        # SQLModel relationships will automatically fill it for you!
         return order
 
-# Read all orders
-@router.get("/", response_model=list[OrderRead])
-def read_all_orders():
+# Customer view order history
+@router.get("/history/{user_id}", response_model=list[OrderRead])
+def read_order_history(user_id: int):
     with Session(engine) as session:
-        statement = select(Order)
-        orders = session.exec(statement).all()
+        statement = select(Order).where(
+            Order.user_id == user_id,
+            Order.status != "cart" # <-- Exclude the active shopping cart
+            ).order_by(Order.created_at.desc()).options(selectinload(Order.items)) # <-- Sort newest to oldest
+        orders = session.exec(statement).all() # <--  returns a list of orders
         return orders
+    
 
-
-#Read total price of an order
-@router.get("/{order_id}/total")
-def read_order_total_price(order_id:int):
-    with Session(engine) as session:
-        order = session.get(Order, order_id)
-        if not order:
-            raise HTTPException(status_code=404, detail="Order not found")
+# #Read total price of an order
+# @router.get("/{order_id}/total")
+# def read_order_total_price(order_id:int):
+#     with Session(engine) as session:
+#         order = session.get(Order, order_id)
+#         if not order:
+#             raise HTTPException(status_code=404, detail="Order not found")
         
-        # Use the relationship directly
-        total_price = sum(item.price_at_purchase * item.quantity for item in order.items)
+#         # Use the relationship directly
+#         total_price = sum(item.price_at_purchase * item.quantity for item in order.items)
 
-        return {
-            "order_id": order_id,
-            "total_price": total_price,
-            "item_count": len(order.items)
-        }
+#         return {
+#             "order_id": order_id,
+#             "total_price": total_price,
+#             "item_count": len(order.items)
+#         }

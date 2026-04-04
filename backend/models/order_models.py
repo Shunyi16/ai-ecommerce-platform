@@ -2,14 +2,16 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
 from enum import Enum
+from pydantic import computed_field
 
 if TYPE_CHECKING:
     from .user_models import User
     from .product_models import Product
 
-# --- ORDER ITEM (The Link Table) ---
+# ---------------- ORDER ITEM (The Link Table) ----------------
 
 class OrderStatus(str, Enum):
+    CART = "cart"
     PENDING = "pending"
     PROCESSING = "processing"
     SHIPPED = "shipped"
@@ -30,14 +32,16 @@ class OrderItem(OrderItemBase, table=True):
     order: "Order" = Relationship(back_populates="items")
     product: "Product" = Relationship(back_populates="order_items")
 
+# creates an order_id when adding an item to the cart
 class OrderItemCreate(SQLModel):
-    """What the frontend sends to add an item to a cart/order"""
+    """customer adds an item to a cart/order"""
+    user_id: int
     product_id: int
     quantity: int = 1
     price_at_purchase: float
     order_id: Optional[int] = None # Optional in case the order is created later
 
-# --- ORDER (The Main Receipt) ---
+# ------------ ORDER (The Main Receipt) ---------------------
 
 class OrderBase(SQLModel):
     user_id: int = Field(foreign_key="users.id")
@@ -52,11 +56,18 @@ class Order(OrderBase, table=True):
     user: "User" = Relationship(back_populates="orders")
     items: List["OrderItem"] = Relationship(back_populates="order")
 
-# --- DTOs for API ---
+# --- ---------------------DTOs for API -----------------------
 
 class OrderRead(OrderBase):
     id: int
-    items: List[OrderItem] # Allows the frontend to see items inside the order object
+    items: List[OrderItem] = [] # Allows the frontend to see items inside the order object
+    
+    @computed_field
+    @property
+    def total_price(self) -> float:
+        """Automatically calculates total when accessed"""
+        return sum(item.price_at_purchase * item.quantity for item in self.items)
+
 
 class OrderCreate(OrderBase):
     pass
