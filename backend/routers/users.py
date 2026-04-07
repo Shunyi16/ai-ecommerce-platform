@@ -17,25 +17,35 @@ def create_user(user: UserCreate):
         existing_user = session.exec(statement).first()
         if existing_user:
             raise HTTPException(status_code=409, detail="User with this email already exists")
-        db_user = User.model_validate(user)
-        session.add(db_user)
-        session.commit()
-        session.refresh(db_user)
+        
+        user_data = user.model_dump() # convert the UserCreate object into a dictionary
+        password = user_data.pop("password") # remove password from the dictionary  
+        # In a real app, hash the password here
+        db_user = User(**user_data, hashed_password=password) # create a new User object, **user_data means unpack the dictionary
+        
+        session.add(db_user) # tell database to get ready to insert a new row in users table
+        session.commit() # commit the transaction
+        session.refresh(db_user) # refresh the user object to get the id
         return db_user
 
 @router.patch("/{user_id}", response_model=UserRead)
-def update_user(user_id: int, user_update = UserUpdate):
+def update_user(user_id: int, user_update: UserUpdate):
     with Session(engine) as session:
         db_user = session.get(User, user_id)
         if not db_user:
             raise HTTPException(status_code=404, detail="User not found")
-    update_data = user_update.model_dump(exclude_unset=True)
-    db_user.sqlmodel_update(update_data)
+            
+        # convert the UserUpdate object into a dictionary, exclude_unset=True means don't update the fields that are not set
+        update_data = user_update.model_dump(exclude_unset=True) 
+        if "password" in update_data:
+            update_data["hashed_password"] = update_data.pop("password") # remove password from the dictionary and add hashed_password
+            
+        db_user.sqlmodel_update(update_data) # update the user object
 
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-    return db_user
+        session.add(db_user) # tell database to get ready to update the user object
+        session.commit() # commit the transaction
+        session.refresh(db_user) # refresh the user object to get the id
+        return db_user
 
 # Read an user account
 @router.get("/{user_id}", response_model=UserRead)

@@ -72,7 +72,8 @@ def view_cart(user_id : int):
     with Session(engine) as session:
         statement = select(Order).where(
             Order.user_id == user_id,
-            Order.status == "cart")
+            Order.status == "cart"
+        ).options(selectinload(Order.items)) # .options() is used to load related data, in this case, it loads the items of the order
         cart_order = session.exec(statement).first() # return a single object
         if not cart_order:
             return []
