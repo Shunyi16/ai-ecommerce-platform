@@ -1,9 +1,9 @@
 import SearchBar from "./SearchBar";
 
-export default function Navbar({cartCount,itemOnClick }){
-    return(
+export default function Navbar({ cartCount, cartOnClick, accountOnClick, itemOnClick }) {
+    return (
 
-        <header style={{width:"100%", maarginBottom: "30px" }}>
+        <header style={{ width: "100%", marginBottom: "30px" }}>
             {/* top row */}
             <div style={{
                 display: "flex",
@@ -12,21 +12,21 @@ export default function Navbar({cartCount,itemOnClick }){
                 padding: "20px 40px",
                 marginBottom: "20px",
             }}>
-                <SearchBar/> {/* leftside: search div */}
+                <SearchBar /> {/* leftside: search div */}
                 <h1 style={{
-                    margin: 0, 
-                    fontSize: "3rem", 
-                    letterSpacing: "1px", 
+                    margin: 0,
+                    fontSize: "3rem",
+                    letterSpacing: "1px",
                     position: "absolute", /* 2. Pulls it out of the Flexbox flow */
                     left: "50%",            /* 3. Pushes the left edge to the exact center */
                     transform: "translateX(-50%)"   /* 4. Pulls it back by half its own width to perfectly center it */
-                    }}> 
-                        Lamps
+                }}>
+                    Lamps
                 </h1>
                 <div style={{ width: "200px" }}></div>  {/* rightsie: bookend */}
-                <div style={{display:"flex", gap: "20px" }}>
-                    <span onClick={itemOnClick} style={{cursor: "pointer"}}>👤 Account</span>
-                    <span onClick = {itemOnClick} style={{ cursor: "pointer" }}>🛒 Cart ({cartCount}) </span>
+                <div style={{ display: "flex", gap: "20px" }}>
+                    <span onClick={accountOnClick} style={{ cursor: "pointer" }}>👤 Account</span>
+                    <span onClick={cartOnClick} style={{ cursor: "pointer" }}>🛒 Cart ({cartCount}) </span>
                 </div>
             </div>
 
@@ -42,13 +42,13 @@ export default function Navbar({cartCount,itemOnClick }){
                 borderBottom: "1px solid #eaeaea",
                 marginBottom: "20px",
             }}>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Ceiling Lights </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Lamps </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Ceiling Fans </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Outdoor Lights </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Wall Lights </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px"}}> Decor </span>
-                <span onClick = {itemOnClick} style = {{cursor: "pointer", fontWeight: "500", wordSpacing: "-2px", color: "red"}}> Sale </span>
+                <span onClick={itemOnClick} style={{ cursor: "pointer", fontWeight: "500", wordSpacing: "-2px" }}> Ceiling Lights </span>
+                <span onClick={itemOnClick} style={{ cursor: "pointer", fontWeight: "500", wordSpacing: "-2px" }}> Lamps </span>
+                <span onClick={itemOnClick} style={{ cursor: "pointer", fontWeight: "500", wordSpacing: "-2px" }}> Ceiling Fans </span>
+                <span onClick={itemOnClick} style={{ cursor: "pointer", fontWeight: "500", wordSpacing: "-2px" }}> Outdoor Lights </span>
+                <span onClick={itemOnClick} style={{ cursor: "pointer", fontWeight: "500", wordSpacing: "-2px" }}> Wall Lights </span>
+                <span onClick={itemOnClick} style={{ cursor: "pointer", fontWeight: "500", wordSpacing: "-2px" }}> Decor </span>
+                <span onClick={itemOnClick} style={{ cursor: "pointer", fontWeight: "500", wordSpacing: "-2px", color: "red" }}> Sale </span>
             </nav>
         </header>
     );
