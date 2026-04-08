@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function Checkout({ isOpen, cartItems, closeCart }) {
+export default function Checkout({ isOpen, cartItems, closeCart, openPayment }) {
 
     const [shippingInfo, setShippingInfo] = useState({
         firstName: "",
@@ -34,30 +34,56 @@ export default function Checkout({ isOpen, cartItems, closeCart }) {
 
     if (!isOpen) return null
     return (
-        <div style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 1000,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-        }}>
-
-            <div style={{
-                backgroundColor: "white",
+        <div onClick={closeCart}
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                zIndex: 1000,
                 display: "flex",
-                maxWidth: "1200px",
-                margin: "0 auto",
-                padding: "50px",
-                borderRadius: "10px",
-                display: "flex",
-                flexDirection: "row",
-                gap: "50px"
+                justifyContent: "center",
+                alignItems: "center",
             }}>
+
+            <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                    backgroundColor: "white",
+                    position: "relative",
+                    display: "flex",
+                    maxWidth: "1200px",
+                    margin: "0 auto",
+                    padding: "50px",
+                    borderRadius: "10px",
+                    flexDirection: "row",
+                    gap: "50px"
+                }}>
+                <button
+                    onClick={closeCart}
+                    style={{
+                        position: "absolute",
+                        top: "15px",
+                        right: "15px",
+                        background: "none",
+                        border: "none",
+                        fontSize: "2rem",
+                        cursor: "pointer",
+                        color: "#999",
+                        padding: "5px",
+                        lineHeight: "1",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                    aria-label="Close checkout"
+                    onMouseEnter={(e) => e.target.style.color = "#333"}
+                    onMouseLeave={(e) => e.target.style.color = "#999"}
+                >
+                    &times; {/* button to close the checkout */}
+                </button>
                 <form style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                     <h2 style={{ display: "flex", justifyContent: "center", color: "#111" }}>Shipping Information</h2>
 
@@ -92,17 +118,23 @@ export default function Checkout({ isOpen, cartItems, closeCart }) {
                             <input style={inputStyle} type="text" name="zipCode" value={shippingInfo.zipCode} onChange={handleInputChange} placeholder="Zip Code" />
                         </div>
                     </div>
-                    <button style={{
-                        fontSize: "1.2rem",
-                        marginTop: "10px",
-                        padding: "10px",
-                        backgroundColor: "#324decff",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                        fontWeight: "bold"
-                    }}
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            closeCart();
+                            openPayment();
+                        }}
+                        style={{
+                            fontSize: "1.2rem",
+                            marginTop: "10px",
+                            padding: "10px",
+                            backgroundColor: "#324decff",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                            fontWeight: "bold"
+                        }}
                         type="submit">Proceed to Payment</button>
                 </form>
 
@@ -147,12 +179,11 @@ export default function Checkout({ isOpen, cartItems, closeCart }) {
 
                         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "15px", paddingTop: "15px", borderTop: "2px solid #ccc", fontSize: "1.3rem" }}>
                             <span style={{ fontWeight: "bold", color: "#111" }}>Total</span>
-                            <span style={{ fontWeight: "bold", color: "#324decff" }}>${(cartItems.reduce((total, item) => total + item.price * item.quantitySelected, 0) + 20).toFixed(2)}</span>
+                            <span style={{ fontWeight: "bold", color: "#111" }}>${(cartItems.reduce((total, item) => total + item.price * item.quantitySelected, 0) + 20).toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
 
     )

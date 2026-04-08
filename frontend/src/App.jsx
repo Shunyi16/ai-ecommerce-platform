@@ -3,6 +3,7 @@ import ProductGrid from './ProductGrid'
 import Navbar from './Navbar'
 import CartDrawer from './CartDrawer'
 import Checkout from './Checkout'
+import Payment from './Payment'
 
 function App() {
   const [products, setProducts] = useState([])
@@ -11,6 +12,7 @@ function App() {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [isItemOpen, setIsItemOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
   // Fetch the data from your FastAPI backend
   useEffect(() => {
@@ -77,6 +79,10 @@ function App() {
     setIsCheckoutOpen(!isCheckoutOpen)
   }
 
+  const togglePayment = () => {
+    setIsPaymentOpen(!isPaymentOpen)
+  }
+
   return (
     <div style={{ padding: "30px", fontFamily: "sans-serif", maxWidth: "1000px", margin: "0 auto", width: "100%" }}> {/* outermost grid wrap */}
       <Navbar
@@ -86,7 +92,8 @@ function App() {
         itemOnClick={toggleItem} />
       <ProductGrid products={products} addToCart={addToCart} />
       <CartDrawer isOpen={isCartOpen} cartItems={cart} closeCart={toggleCart} updateQuantity={updateCartItemQuantity} openCheckout={toggleCheckout} />
-      <Checkout isOpen={isCheckoutOpen} cartItems={cart} closeCart={toggleCheckout} />
+      <Checkout isOpen={isCheckoutOpen} cartItems={cart} closeCart={toggleCheckout} openPayment={togglePayment} />
+      <Payment isOpen={isPaymentOpen} cartItems={cart} closeCart={togglePayment} />
     </div>
 
   )

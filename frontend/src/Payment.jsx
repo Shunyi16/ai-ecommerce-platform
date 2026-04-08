@@ -1,0 +1,241 @@
+import { useState } from "react";
+import Checkout from "./Checkout";
+
+export default function Payment({ isOpen, cartItems, closeCart }) {
+
+    const [paymentInfo, setPaymentInfo] = useState({
+        cardNumber: "",
+        fullName: "",
+        expiryDate: "",
+        securityCode: ""
+    })
+
+    const [billingInfo, setBillingInfo] = useState({
+        address: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        phoneNumber: ""
+    })
+
+    const [isSameAsShipping, setIsSameAsShipping] = useState(false);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setPaymentInfo(prevInfo => ({
+            ...prevInfo,
+            [name]: value
+        }));
+    };
+
+    const handleBillingChange = (e) => {
+        const { name, value } = e.target;
+        setBillingInfo(prevInfo => ({
+            ...prevInfo,
+            [name]: value
+        }));
+    };
+
+    const inputStyle = {
+        width: "100%",
+        padding: "12px",
+        margin: "8px 0 20px 0",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        backgroundColor: "white", /* Forces the background explicitly white instead of gray */
+        color: "#333",            /* Forces text to be a nice dark gray */
+        fontSize: "1rem",
+        boxSizing: "border-box"
+    };
+
+    if (!isOpen) return null
+    return (
+        <div onClick={closeCart}
+            style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                zIndex: 1000,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+            }}>
+            <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                    backgroundColor: "white",
+                    position: "relative",
+                    display: "block",
+                    width: "100%",
+                    maxWidth: "1000px",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                    margin: "0 auto",
+                    padding: "50px",
+                    borderRadius: "10px",
+                }}>
+
+                <button
+                    onClick={closeCart}
+                    style={{
+                        position: "absolute",
+                        top: "15px",
+                        right: "15px",
+                        background: "none",
+                        border: "none",
+                        fontSize: "2rem",
+                        cursor: "pointer",
+                        color: "#999",
+                        padding: "5px",
+                        lineHeight: "1",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                    aria-label="Close checkout"
+                    onMouseEnter={(e) => e.target.style.color = "#333"}
+                    onMouseLeave={(e) => e.target.style.color = "#999"}
+                >
+                    &times; {/* button to close the checkout */}
+                </button>
+
+                <div style={{ display: "flex", flexDirection: "row", gap: "50px", width: "100%" }}>
+
+                    <form style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                        <h2 style={{ display: "flex", textAlign: "left", color: "#111" }}>Payment Information</h2>
+
+                        <div style={{ display: "flex", gap: "15px" }}>
+                            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                                <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>Card Number</label>
+                                <input style={inputStyle} type="number" name="cardNumber" value={paymentInfo.cardNumber} onChange={handleInputChange} placeholder="Card Number" />
+                            </div>
+                        </div>
+
+                        <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>Expiry Date</label>
+                        <input style={inputStyle} type="text" name="expiryDate" value={paymentInfo.expiryDate} onChange={handleInputChange} placeholder="MM/YY" />
+
+                        <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>Full Name</label>
+                        <input style={inputStyle} type="text" name="fullName" value={paymentInfo.fullName} onChange={handleInputChange} placeholder="Full Name" />
+
+                        <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>SecurityCode</label>
+                        <input style={inputStyle} type="text" name="securityCode" value={paymentInfo.securityCode} onChange={handleInputChange} placeholder="CVV" />
+
+                        <h2 style={{ display: "flex", textAlign: "left", color: "#111" }}>Billing Address</h2>
+
+                        <label style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <input type="checkbox" checked={isSameAsShipping} onChange={(e) => setIsSameAsShipping(e.target.checked)} />
+                            Same as shipping
+                        </label>
+                        {!isSameAsShipping && (
+                            <div style={{ display: "flex", flexDirection: "column" }}>
+                                <div style={{ display: "flex", gap: "15px" }}>
+                                    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                                        <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>First Name</label>
+                                        <input style={inputStyle} type="text" name="firstName" value={billingInfo.firstName} onChange={handleBillingChange} placeholder="First Name" />
+                                    </div>
+                                    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                                        <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>Last Name</label>
+                                        <input style={inputStyle} type="text" name="lastName" value={billingInfo.lastName} onChange={handleBillingChange} placeholder="Last Name" />
+                                    </div>
+                                </div>
+                                <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>Address</label>
+                                <input style={inputStyle} type="text" name="address" value={billingInfo.address} onChange={handleBillingChange} placeholder="Address" />
+
+                                <div style={{ display: "flex", gap: "15px" }}>
+                                    <div style={{ flex: 2, display: "flex", flexDirection: "column" }}>
+                                        <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>City</label>
+                                        <input style={inputStyle} type="text" name="city" value={billingInfo.city} onChange={handleBillingChange} placeholder="City" />
+                                    </div>
+                                    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                                        <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>State</label>
+                                        <input style={inputStyle} type="text" name="state" value={billingInfo.state} onChange={handleBillingChange} placeholder="State" />
+                                    </div>
+                                    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                                        <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>Zip Code</label>
+                                        <input style={inputStyle} type="text" name="zipCode" value={billingInfo.zipCode} onChange={handleBillingChange} placeholder="Zip Code" />
+                                    </div>
+                                </div>
+                                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                                    <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>Phone Number</label>
+                                    <input style={inputStyle} type="number" name="phoneNumber" value={billingInfo.phoneNumber} onChange={handleBillingChange} placeholder="Phone Number" />
+                                </div>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                closeCart();
+                            }}
+                            style={{
+                                fontSize: "1.2rem",
+                                marginTop: "10px",
+                                padding: "10px",
+                                backgroundColor: "#324decff",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "5px",
+                                cursor: "pointer",
+                                fontWeight: "bold"
+                            }}
+                            type="submit">Place Order</button>
+                    </form>
+
+                    <div style={{ flex: 1, backgroundColor: "#fbfbfb", padding: "30px", borderRadius: "10px", border: "1px solid #ebebeb" }}>
+                        <h2 style={{ display: "flex", justifyContent: "center", color: "#111", marginBottom: "30px", marginTop: 0 }}>Order Summary</h2>
+
+                        {/* Cart Items List */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "30px" }}>
+                            {cartItems.map((item) => (
+                                <div key={item.id} style={{ display: "flex", flexDirection: "column", borderBottom: "1px solid #ddd", paddingBottom: "15px" }}>
+                                    <p style={{ textAlign: "left", margin: "0 0 10px 0", fontWeight: "bold", color: "#222" }}>{item.name}</p>
+
+                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
+                                        <span style={{ color: "#666" }}>Quantity</span>
+                                        <span style={{ fontWeight: "600", color: "#111" }}>{item.quantitySelected}</span>
+                                    </div>
+
+                                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                        <span style={{ color: "#666" }}>Price</span>
+                                        <span style={{ fontWeight: "600", color: "#111" }}>${(item.price * item.quantitySelected).toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Receipt Totals */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "1.05rem" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <span style={{ color: "#666" }}>Product Total</span>
+                                <span style={{ fontWeight: "bold", color: "#111" }}>${cartItems.reduce((total, item) => total + item.price * item.quantitySelected, 0).toFixed(2)}</span>
+                            </div>
+
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <span style={{ color: "#666" }}>Shipping & Processing</span>
+                                <span style={{ fontWeight: "bold", color: "#111" }}>$10.00</span>
+                            </div>
+
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <span style={{ color: "#666" }}>Tax</span>
+                                <span style={{ fontWeight: "bold", color: "#111" }}>$10.00</span>
+                            </div>
+
+                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "15px", paddingTop: "15px", borderTop: "2px solid #ccc", fontSize: "1.3rem" }}>
+                                <span style={{ fontWeight: "bold", color: "#111" }}>Total</span>
+                                <span style={{ fontWeight: "bold", color: "#111" }}>${(cartItems.reduce((total, item) => total + item.price * item.quantitySelected, 0) + 20).toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    )
+
+}
