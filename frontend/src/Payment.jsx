@@ -1,9 +1,11 @@
 import { useState } from "react";
 import PaymentInformation from "./components/Checkout/PaymentInformation";
-import BillingAddress from "./components/Checkout/BillingAddress";
 import OrderSummary from "./components/Checkout/OrderSummary";
+import AddressFields from "./components/Checkout/AddressFields";
+import InputField from "./components/common/InputField";
+import Button from "./components/common/Button";
 
-export default function Payment({ isOpen, cartItems, closeCart, openCheckout }) {
+export default function Payment({ isOpen, cartItems, closeCart, openCheckout, shippingInfo }) {
     const [paymentInfo, setPaymentInfo] = useState({
         cardNumber: "",
         fullName: "",
@@ -73,37 +75,6 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout }) 
             [name]: value,
         }));
         setErrors((prev) => ({ ...prev, [name]: undefined }));
-    };
-
-    // input style or red border for error
-    const getInputStyle = (errorMsg) => ({
-        width: "100%",
-        padding: "12px",
-        margin: "8px 0 4px 0",
-        borderRadius: "6px",
-        border: errorMsg ? "1px solid #d93025" : "1px solid #ccc", // Dynamic red border!
-        backgroundColor: "white",
-        color: "#333",
-        fontSize: "1rem",
-        boxSizing: "border-box",
-    });
-
-    // render error message
-    const renderError = (errorMsg) => {
-        if (!errorMsg)
-            return <div style={{ height: "16px", marginBottom: "8px" }} />;
-        return (
-            <div
-                style={{
-                    color: "#d93025",
-                    fontSize: "0.85rem",
-                    fontWeight: "bold",
-                    marginBottom: "8px",
-                }}
-            >
-                {errorMsg}
-            </div>
-        );
     };
 
     // handle form submit
@@ -246,108 +217,122 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout }) 
                     margin: "0 auto",
                     padding: "50px",
                     borderRadius: "10px",
+                    boxSizing: "border-box",
                 }}
             >
-                <button
+                <Button
+                    variant="icon"
                     onClick={closeCart}
-                    style={{
-                        position: "absolute",
-                        top: "15px",
-                        right: "15px",
-                        background: "none",
-                        border: "none",
-                        fontSize: "2rem",
-                        cursor: "pointer",
-                        color: "#999",
-                        padding: "5px",
-                        lineHeight: "1",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                    aria-label="Close checkout"
-                    onMouseEnter={(e) => (e.target.style.color = "#333")}
-                    onMouseLeave={(e) => (e.target.style.color = "#999")}
+                    style={{ top: "15px", right: "15px" }}
+                    ariaLabel="Close checkout"
                 >
-                    &times; {/* button to close the checkout */}
-                </button>
+                    &times;
+                </Button>
 
 
-                <div style={{ display: "flex", flexDirection: "row", gap: "50px", marginBlock: "-10px" }}>
+                <div style={{ display: "flex", flexDirection: "row", gap: "30px", marginBlock: "-10px", alignItems: "stretch" }}>
                     <form
                         onSubmit={handleFormSubmit}
-                        style={{ flex: 1, display: "flex", flexDirection: "column" }}
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            paddingTop: "30px",
+                        }}
                         noValidate
                     >
                         <PaymentInformation
                             paymentInfo={paymentInfo}
                             handleInputChange={handleInputChange}
                             errors={errors}
-                            getInputStyle={getInputStyle}
-                            renderError={renderError}
                         />
 
-                        <BillingAddress
-                            isSameAsShipping={isSameAsShipping}
-                            setIsSameAsShipping={setIsSameAsShipping}
-                            billingInfo={billingInfo}
-                            handleBillingChange={handleBillingChange}
-                            errors={errors}
-                            getInputStyle={getInputStyle}
-                            renderError={renderError}
-                        />
+                        <>
+                            <h2 style={{
+                                margin: "30px 0",
+                                fontSize: "1.5rem",
+                                color: "#111",
+                                textAlign: "center"
+                            }}>
+                                Billing Address
+                            </h2>
+
+                            <label
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                    marginBottom: "15px",
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={isSameAsShipping}
+                                    onChange={(e) => setIsSameAsShipping(e.target.checked)}
+                                    style={{
+                                        backgroundColor: "white",
+                                        colorScheme: "light",
+                                        accentColor: "#324dec",
+                                    }}
+                                />
+                                Same as shipping
+                            </label>
+
+                            {!isSameAsShipping && (
+                                <div style={{ display: "flex", flexDirection: "column" }}>
+                                    <AddressFields
+                                        info={billingInfo}
+                                        onChange={handleBillingChange}
+                                        errors={errors}
+                                    />
+                                    <InputField
+                                        label="Phone Number"
+                                        name="phoneNumber"
+                                        value={billingInfo.phoneNumber}
+                                        onChange={handleBillingChange}
+                                        placeholder="Phone Number"
+                                        maxLength={15}
+                                        error={errors.phoneNumber}
+                                    />
+                                </div>
+                            )}
+                        </>
                     </form>
-                    <OrderSummary cartItems={cartItems} />
+                    <OrderSummary 
+                        cartItems={cartItems} 
+                        shippingState={shippingInfo.state} 
+                    />
                 </div>
 
                 {/* buttons */}
-                <div style={{ flexDirection: "row", display: "flex", gap: "20px", justifyContent: "center" }}>
-                    <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            display: "flex",
-                            gap: "20px",
-                            alignItems: "center",
-                            marginTop: "15px"
-                        }}>
+                <div style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: "20px",
+                    alignItems: "center",
+                    marginTop: "30px",
+                    paddingTop: "30px",
+                    borderTop: "1px solid #eaeaea"
+                }}>
+                    <Button
+                        variant="secondary"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            closeCart();
+                            openCheckout();
+                        }}
+                    >
+                        Back
+                    </Button>
 
-                        <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                closeCart();
-                                openCheckout();
-                            }}
-                            style={{
-                                fontSize: "1.2rem",
-                                padding: "10px 30px",
-                                backgroundColor: "white",
-                                color: "#333",
-                                border: "1px solid #ccc",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                fontWeight: "bold"
-                            }}
-                            onMouseEnter={(e) => e.target.style.color = "#111"}
-                            onMouseLeave={(e) => e.target.style.color = "#666"}>
-                            Back
-                        </button>
-
-                        <button
-                            onClick={handleFormSubmit}
-                            style={{
-                                fontSize: "1.2rem",
-                                padding: "10px 30px",
-                                backgroundColor: "#324decff",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                fontWeight: "bold",
-                                flex: 1
-                            }}
-                            type="submit">Place Order
-                        </button>
-                    </div>
+                    <Button
+                        variant="primary"
+                        onClick={handleFormSubmit}
+                        type="submit"
+                        style={{ padding: "12px 40px", minWidth: "250px" }}
+                    >
+                        Place Order
+                    </Button>
                 </div>
             </div>
         </div>

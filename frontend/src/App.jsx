@@ -13,6 +13,16 @@ function App() {
   const [isItemOpen, setIsItemOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
+  const [shippingInfo, setShippingInfo] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: ""
+  })
 
   // Fetch the data from your FastAPI backend
   useEffect(() => {
@@ -108,8 +118,22 @@ function App() {
         itemOnClick={toggleItem} />
       <ProductGrid products={products} addToCart={addToCart} />
       <CartDrawer isOpen={isCartOpen} cartItems={cart} closeCart={toggleCart} updateQuantity={updateCartItemQuantity} openCheckout={toggleCheckout} />
-      <Checkout isOpen={isCheckoutOpen} cartItems={cart} closeCart={toggleCheckout} openPayment={togglePayment} openCart={toggleCart} />
-      <Payment isOpen={isPaymentOpen} cartItems={cart} closeCart={togglePayment} openCheckout={toggleCheckout} />
+      <Checkout 
+        isOpen={isCheckoutOpen} 
+        cartItems={cart} 
+        closeCart={toggleCheckout} 
+        openPayment={togglePayment} 
+        openCart={toggleCart} 
+        shippingInfo={shippingInfo}
+        setShippingInfo={setShippingInfo}
+      />
+      <Payment 
+        isOpen={isPaymentOpen} 
+        cartItems={cart} 
+        closeCart={togglePayment} 
+        openCheckout={toggleCheckout} 
+        shippingInfo={shippingInfo}
+      />
     </div>
 
   )

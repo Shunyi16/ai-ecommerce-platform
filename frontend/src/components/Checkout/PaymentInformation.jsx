@@ -1,69 +1,55 @@
 import React from "react";
+import InputField from "../common/InputField";
 
-export default function PaymentInformation({ paymentInfo, handleInputChange, errors, getInputStyle, renderError }) {
+export default function PaymentInformation({ paymentInfo, handleInputChange, errors }) {
     return (
         <>
-            <h2 style={{ display: "flex", textAlign: "left", color: "#111" }}>
+            <h2 style={{ 
+                margin: "0 0 30px 0", 
+                fontSize: "1.5rem", 
+                color: "#111", 
+                textAlign: "center" 
+            }}>
                 Payment Information
             </h2>
 
-            <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>
-                Card Number
-                <span style={{ color: "red", fontWeight: "bold", fontSize: "0.9rem", marginLeft: "4px" }}>*</span>
-            </label>
-            <input
-                style={getInputStyle(errors.cardNumber)}
-                type="text"
+            <InputField
+                label="Card Number"
                 name="cardNumber"
                 value={paymentInfo.cardNumber}
                 onChange={handleInputChange}
                 placeholder="Card Number"
                 maxLength={19}
+                error={errors.cardNumber}
             />
-            {renderError(errors.cardNumber)}
 
-            <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>
-                Expiration Date
-                <span style={{ color: "red", fontWeight: "bold", fontSize: "0.9rem", marginLeft: "4px" }}>*</span>
-            </label>
-            <input
-                style={getInputStyle(errors.expiryDate)}
-                type="text"
+            <InputField
+                label="Expiration Date"
                 name="expiryDate"
                 value={paymentInfo.expiryDate}
                 onChange={handleInputChange}
                 placeholder="MM/YY"
+                error={errors.expiryDate}
             />
-            {renderError(errors.expiryDate)}
 
-            <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>
-                Full Name
-                <span style={{ color: "red", fontWeight: "bold", fontSize: "0.9rem", marginLeft: "4px" }}>*</span>
-            </label>
-            <input
-                style={getInputStyle(errors.fullName)}
-                type="text"
+            <InputField
+                label="Full Name"
                 name="fullName"
                 value={paymentInfo.fullName}
                 onChange={handleInputChange}
                 placeholder="Full Name"
+                error={errors.fullName}
             />
-            {renderError(errors.fullName)}
 
-            <label style={{ color: "#333", textAlign: "left", marginBottom: "5px" }}>
-                Security Code
-                <span style={{ color: "red", fontWeight: "bold", fontSize: "0.9rem", marginLeft: "4px" }}>*</span>
-            </label>
-            <input
-                style={getInputStyle(errors.securityCode)}
-                type="text"
+            <InputField
+                label="Security Code"
                 name="securityCode"
                 value={paymentInfo.securityCode}
                 onChange={handleInputChange}
                 placeholder="CVV"
                 maxLength={4}
+                error={errors.securityCode}
             />
-            {renderError(errors.securityCode)}
         </>
     );
 }

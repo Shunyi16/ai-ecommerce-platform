@@ -1,3 +1,5 @@
+import Button from './components/common/Button';
+
 export default function CartDrawer({ isOpen, cartItems, closeCart, updateQuantity, openCheckout }) {
   // Calculate cart total dynamically
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * (item.quantitySelected || 1)), 0);
@@ -52,29 +54,18 @@ export default function CartDrawer({ isOpen, cartItems, closeCart, updateQuantit
         }}
       >
 
-        {/* Drawer Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
-          <h2 style={{ margin: 0, fontSize: "1.8rem", color: "#111" }}>Your Cart</h2>
-          <button
+        <Button
+            variant="icon"
             onClick={closeCart}
-            style={{
-              background: "none",
-              border: "none",
-              fontSize: "1.5rem",
-              cursor: "pointer",
-              width: "35px",
-              height: "35px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(0,0,0,0.05)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#333",
-              transition: "background 0.2s"
-            }}
-          >
-            ✕
-          </button>
+            style={{ top: "15px", right: "15px" }}
+            ariaLabel="Close cart"
+        >
+            &times;
+        </Button>
+
+        {/* Drawer Header */}
+        <div style={{ marginBottom: "30px", marginTop: "10px" }}>
+          <h2 style={{ margin: 0, fontSize: "1.8rem", color: "#111" }}>Your Cart</h2>
         </div>
 
         {/* Drawer Body/Items */}
@@ -148,25 +139,20 @@ export default function CartDrawer({ isOpen, cartItems, closeCart, updateQuantit
               <span>Subtotal</span>
               <span style={{ color: "#324decff" }}>${subtotal.toFixed(2)}</span>
             </div>
-            <button 
+            <Button
+              variant="primary"
               onClick={() => {
                 closeCart();
                 openCheckout();
               }}
               style={{
-              width: "100%",
-              padding: "16px",
-              backgroundColor: "#111",
-              color: "white",
-              fontSize: "1.2rem",
-              fontWeight: "bold",
-              border: "none",
-              borderRadius: "10px",
-              cursor: "pointer",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.2)"
-            }}>
+                width: "100%",
+                padding: "16px",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.2)"
+              }}
+            >
               Checkout
-            </button>
+            </Button>
           </div>
         )}
 

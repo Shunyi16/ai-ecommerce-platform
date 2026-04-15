@@ -1,19 +1,10 @@
 import { useState } from 'react'
 import OrderSummary from './components/Checkout/OrderSummary';
 import AddressFields from './components/Checkout/AddressFields';
+import InputField from './components/common/InputField';
+import Button from './components/common/Button';
 
-export default function Checkout({ isOpen, cartItems, closeCart, openPayment, openCart }) {
-
-    const [shippingInfo, setShippingInfo] = useState({
-        firstName: "",
-        lastName: "",
-        email: "",
-        address: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        country: ""
-    })
+export default function Checkout({ isOpen, cartItems, closeCart, openPayment, openCart, shippingInfo, setShippingInfo }) {
 
     // Using an object to track errors by field name
     const [errors, setErrors] = useState({});
@@ -39,41 +30,10 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
         setErrors((prev) => ({ ...prev, [name]: undefined }));
     };
 
-    // input style or red border for error
-    const getInputStyle = (errorMsg) => ({
-        width: "100%",
-        padding: "12px",
-        margin: "8px 0 4px 0",
-        borderRadius: "6px",
-        border: errorMsg ? "1px solid #d93025" : "1px solid #ccc", // Dynamic red border!
-        backgroundColor: "white",
-        color: "#333",
-        fontSize: "1rem",
-        boxSizing: "border-box",
-    });
-
-    // render error message
-    const renderError = (errorMsg) => {
-        if (!errorMsg)
-            return <div style={{ height: "16px", marginBottom: "8px" }} />;
-        return (
-            <div
-                style={{
-                    color: "#d93025",
-                    fontSize: "0.85rem",
-                    fontWeight: "bold",
-                    marginBottom: "8px",
-                }}
-            >
-                {errorMsg}
-            </div>
-        );
-    };
-
+    // handle proceed to payment
     const handleProceedToPayment = (e) => {
         e.preventDefault();
         let newErrors = {};
-
         const nameRegex = /^[a-zA-Z\s\-\']+$/;
         if (!shippingInfo.firstName.trim()) {
             newErrors.firstName = "First name is required.";
@@ -85,7 +45,6 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
         } else if (!nameRegex.test(shippingInfo.lastName)) {
             newErrors.lastName = "Please use only letters for the last name.";
         }
-
         if (!shippingInfo.address.trim()) newErrors.address = "Address is required.";
         if (!shippingInfo.city.trim()) newErrors.city = "City is required.";
         if (!shippingInfo.state.trim()) {
@@ -93,33 +52,29 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
         } else if (shippingInfo.state.trim().length !== 2) {
             newErrors.state = "State code must be 2 letters.";
         }
-
         if (!shippingInfo.zipCode.trim()) {
             newErrors.zipCode = "Zip code is required.";
         } else if (shippingInfo.zipCode.length !== 5) {
             newErrors.zipCode = "Zip code must be 5 digits.";
         }
-
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!shippingInfo.email) {
             newErrors.email = "Email is required";
         } else if (!emailRegex.test(shippingInfo.email)) {
             newErrors.email = "Please enter a valid email address";
         }
-
         if (!shippingInfo.country) {
             newErrors.country = "Country is required.";
         }
-
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
         }
-
         setErrors({}); // clear errors
         closeCart();
         openPayment();
     };
+
 
     if (!isOpen) return null
     return (
@@ -144,115 +99,92 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
                     backgroundColor: "white",
                     position: "relative",
                     display: "flex",
-                    maxWidth: "1200px",
+                    width: "100%",
+                    maxWidth: "1000px",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
                     margin: "0 auto",
                     padding: "50px",
                     borderRadius: "10px",
                     flexDirection: "column",
+                    boxSizing: "border-box",
                     gap: "50px"
                 }}>
-                <button
+                <Button
+                    variant="icon"
                     onClick={closeCart}
-                    style={{
-                        position: "absolute",
-                        top: "15px",
-                        right: "15px",
-                        background: "none",
-                        border: "none",
-                        fontSize: "2rem",
-                        cursor: "pointer",
-                        color: "#999",
-                        padding: "5px",
-                        lineHeight: "1",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                    aria-label="Close cart"
-                    onMouseEnter={(e) => e.target.style.color = "#333"}
-                    onMouseLeave={(e) => e.target.style.color = "#999"}
+                    style={{ top: "15px", right: "15px" }}
+                    ariaLabel="Close cart"
                 >
-                    &times; {/* button to close the checkout */}
-                </button>
+                    &times;
+                </Button>
 
-                <div style={{ display: "flex", flexDirection: "row", gap: "50px", marginBlock: "-10px" }}>
-                    <form style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                        <h2 style={{ display: "flex", justifyContent: "center", color: "#111", marginBottom: "10px" }}>Shipping Information</h2>
+                <div style={{ display: "flex", flexDirection: "row", gap: "30px", marginBlock: "-10px", alignItems: "stretch" }}>
+                    <form style={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        textAlign: "left",
+                        paddingTop: "30px",
+                    }}>
+                        <h2 style={{
+                            margin: "0 0 30px 0",
+                            fontSize: "1.5rem",
+                            color: "#111",
+                            textAlign: "center"
+                        }}>
+                            Shipping Information
+                        </h2>
                         <AddressFields
                             info={shippingInfo}
                             onChange={handleInputChange}
                             errors={errors}
-                            getInputStyle={getInputStyle}
-                            renderError={renderError}
                         />
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                            <label style={{ color: "#333", textAlign: "left", marginBottom: "3px" }}>
-                                Email
-                                <span style={{ color: "red", fontWeight: "bold", fontSize: "0.9rem", marginLeft: "4px" }}>*</span></label>
-                            <input
-                                style={getInputStyle(errors.email)}
-                                type="email"
-                                name="email"
-                                value={shippingInfo.email}
-                                onChange={handleInputChange}
-                                placeholder="Email"
-                            />
-                            {errors.email && <span style={{ color: "red", fontSize: "0.85rem", textAlign: "left", marginTop: "-15px", marginBottom: "15px" }}>{errors.email}</span>}
-                        </div>
+                        <InputField
+                            label="Email"
+                            type="email"
+                            name="email"
+                            value={shippingInfo.email}
+                            onChange={handleInputChange}
+                            placeholder="Email"
+                            error={errors.email}
+                        />
                     </form>
-                    <OrderSummary cartItems={cartItems} />
+                    <OrderSummary
+                        cartItems={cartItems}
+                        shippingState={shippingInfo.state}
+                    />
                 </div>
 
                 {/* buttons */}
-                <div style={{ flexDirection: "row", display: "flex", gap: "20px", justifyContent: "center" }}>
-                    <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            backgroundColor: "white",
-                            position: "relative",
-                            display: "flex",
-                            maxWidth: "1200px",
-                            margintop: "5px",
-                            borderRadius: "10px"
-                        }}>
-
-                        <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                closeCart();
-                                openCart();
-                            }}
-                            style={{
-                                fontSize: "1.2rem",
-                                padding: "10px 30px",
-                                backgroundColor: "white",
-                                color: "#333",
-                                border: "1px solid #ccc",
-                                borderRadius: "5px",
-                                cursor: "pointer",
-                                fontWeight: "bold"
-                            }}
-                            onMouseEnter={(e) => e.target.style.color = "#111"}
-                            onMouseLeave={(e) => e.target.style.color = "#666"}>
-                            Back
-                        </button>
-                    </div>
-
-                    <button
-                        onClick={handleProceedToPayment}
-                        style={{
-                            fontSize: "1.2rem",
-                            padding: "10px 30px",
-                            backgroundColor: "#324decff",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                            flex: 1
+                <div style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: "20px",
+                    alignItems: "center",
+                    marginTop: "30px",
+                    paddingTop: "30px",
+                    borderTop: "1px solid #eaeaea"
+                }}>
+                    <Button
+                        variant="secondary"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            closeCart();
+                            openCart();
                         }}
-                        type="submit">Proceed to Payment
-                    </button>
+                    >
+                        Back
+                    </Button>
+
+                    <Button
+                        variant="primary"
+                        onClick={handleProceedToPayment}
+                        type="submit"
+                        style={{ padding: "12px 40px", minWidth: "250px" }}
+                    >
+                        Proceed to Payment
+                    </Button>
                 </div>
             </div>
         </div>
