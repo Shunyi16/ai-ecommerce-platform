@@ -19,6 +19,9 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
             value = value.replace(/[^a-zA-Z\s\-\']/g, "");
         } else if (name === "state") {
             value = value.replace(/[^a-zA-Z]/g, "").toUpperCase();
+        } else if (name === "phoneNumber") {
+            // Allow numbers, spaces, parentheses, and hyphens
+            value = value.replace(/[^\d\s\-\(\)]/g, "");
         } else if (name === "email") {
             // Remove any blank spaces from emails while typing
             value = value.replace(/\s/g, "");
@@ -57,6 +60,11 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
         } else if (shippingInfo.zipCode.length !== 5) {
             newErrors.zipCode = "Zip code must be 5 digits.";
         }
+        if (!shippingInfo.phoneNumber.trim()) {
+            newErrors.phoneNumber = "Phone number is required.";
+        } else if (shippingInfo.phoneNumber.replace(/\D/g, "").length < 10) {
+            newErrors.phoneNumber = "Please enter a valid 10-digit phone number.";
+        }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!shippingInfo.email) {
             newErrors.email = "Email is required";
@@ -85,7 +93,8 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
                 left: 0,
                 width: "100%",
                 height: "100%",
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                backgroundColor: "rgba(0, 0, 0, 0.4)",
+                backdropFilter: "blur(8px)",
                 zIndex: 1000,
                 display: "flex",
                 justifyContent: "center",
@@ -96,19 +105,21 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
             <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                    backgroundColor: "white",
+                    backgroundColor: "#f9f8f3f8",
                     position: "relative",
                     display: "flex",
                     width: "100%",
                     maxWidth: "1000px",
                     maxHeight: "90vh",
                     overflowY: "auto",
-                    margin: "0 auto",
-                    padding: "50px",
-                    borderRadius: "10px",
+                    margin: "20px",
+                    padding: "40px 50px",
+                    borderRadius: "24px",
                     flexDirection: "column",
                     boxSizing: "border-box",
-                    gap: "50px"
+                    gap: "40px",
+                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                    border: "1px solid rgba(0,0,0,0.05)"
                 }}>
                 <Button
                     variant="icon"
@@ -119,41 +130,47 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
                     &times;
                 </Button>
 
-                <div style={{ display: "flex", flexDirection: "row", gap: "30px", marginBlock: "-10px", alignItems: "stretch" }}>
+                <div style={{ display: "flex", flexDirection: "row", gap: "40px", alignItems: "stretch", flexWrap: "wrap" }}>
                     <form style={{
-                        flex: 1,
+                        flex: "1.4",
                         display: "flex",
                         flexDirection: "column",
                         textAlign: "left",
-                        paddingTop: "30px",
+                        paddingTop: "10px",
                     }}>
                         <h2 style={{
                             margin: "0 0 30px 0",
-                            fontSize: "1.5rem",
+                            fontSize: "1.8rem",
                             color: "#111",
-                            textAlign: "center"
+                            fontWeight: "700"
                         }}>
-                            Shipping Information
+                            Shipping Details
                         </h2>
-                        <AddressFields
-                            info={shippingInfo}
-                            onChange={handleInputChange}
-                            errors={errors}
-                        />
-                        <InputField
-                            label="Email"
-                            type="email"
-                            name="email"
-                            value={shippingInfo.email}
-                            onChange={handleInputChange}
-                            placeholder="Email"
-                            error={errors.email}
-                        />
+
+                        <div style={{ padding: "25px", borderRadius: "16px" }}>
+                            <AddressFields
+                                info={shippingInfo}
+                                onChange={handleInputChange}
+                                errors={errors}
+                            />
+                            <InputField
+                                label="Email"
+                                type="email"
+                                name="email"
+                                value={shippingInfo.email}
+                                onChange={handleInputChange}
+                                placeholder="your@email.com"
+                                error={errors.email}
+                            />
+                        </div>
                     </form>
-                    <OrderSummary
-                        cartItems={cartItems}
-                        shippingState={shippingInfo.state}
-                    />
+
+                    <div style={{ flex: "1", minWidth: "350px" }}>
+                        <OrderSummary
+                            cartItems={cartItems}
+                            shippingState={shippingInfo.state}
+                        />
+                    </div>
                 </div>
 
                 {/* buttons */}
@@ -162,9 +179,9 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
                     justifyContent: "flex-end",
                     gap: "20px",
                     alignItems: "center",
-                    marginTop: "30px",
+                    marginTop: "10px",
                     paddingTop: "30px",
-                    borderTop: "1px solid #eaeaea"
+                    borderTop: "1px solid rgba(0,0,0,0.06)"
                 }}>
                     <Button
                         variant="secondary"
@@ -181,9 +198,9 @@ export default function Checkout({ isOpen, cartItems, closeCart, openPayment, op
                         variant="primary"
                         onClick={handleProceedToPayment}
                         type="submit"
-                        style={{ padding: "12px 40px", minWidth: "250px" }}
+                        style={{ padding: "16px 50px", minWidth: "280px", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(50, 77, 236, 0.3)" }}
                     >
-                        Proceed to Payment
+                        Continue to Payment
                     </Button>
                 </div>
             </div>

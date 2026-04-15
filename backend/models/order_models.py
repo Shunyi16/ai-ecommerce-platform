@@ -58,9 +58,15 @@ class Order(OrderBase, table=True):
 
 # --- ---------------------DTOs for API -----------------------
 
+from .product_models import ProductRead
+
+class OrderItemRead(OrderItemBase):
+    id: int
+    product: Optional[ProductRead] = None
+
 class OrderRead(OrderBase):
     id: int
-    items: List[OrderItem] = [] # Allows the frontend to see items inside the order object
+    items: List[OrderItemRead] = [] 
     
     @computed_field
     @property

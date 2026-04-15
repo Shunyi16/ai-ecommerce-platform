@@ -4,11 +4,11 @@ import InputField from "../common/InputField";
 export default function PaymentInformation({ paymentInfo, handleInputChange, errors }) {
     return (
         <>
-            <h2 style={{ 
-                margin: "0 0 30px 0", 
-                fontSize: "1.5rem", 
-                color: "#111", 
-                textAlign: "center" 
+            <h2 style={{
+                margin: "0 0 30px 0",
+                fontSize: "1.5rem",
+                color: "#111",
+                textAlign: "left"
             }}>
                 Payment Information
             </h2>

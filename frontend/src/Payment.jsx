@@ -5,7 +5,7 @@ import AddressFields from "./components/Checkout/AddressFields";
 import InputField from "./components/common/InputField";
 import Button from "./components/common/Button";
 
-export default function Payment({ isOpen, cartItems, closeCart, openCheckout, shippingInfo }) {
+export default function Payment({ isOpen, cartItems, closeCart, openCheckout, shippingInfo, onSuccess }) {
     const [paymentInfo, setPaymentInfo] = useState({
         cardNumber: "",
         fullName: "",
@@ -25,9 +25,8 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
     });
 
     const [isSameAsShipping, setIsSameAsShipping] = useState(false);
-
-    // Using an object to track errors by field name
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
     // Handle input changes for payment info
     const handleInputChange = (e) => {
@@ -47,27 +46,23 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
         } else if (name === "fullName") {
             value = value.replace(/[^a-zA-Z\s\-\']/g, "");
         }
-        // saving the input values
         setPaymentInfo((prevInfo) => ({
-            ...prevInfo, // tell react to take a snapshot of the current data
-            [name]: value, //ells React: "Look at the HTML name of the box they are typing in (e.g. cardNumber), and instantly update only that specific field with the new text"
+            ...prevInfo,
+            [name]: value,
         }));
-        setErrors((prev) => ({ ...prev, [name]: undefined })); // If user hits "Submit" with an empty box, the box turns red and says "Required."; or clear the error message when user starts typing
+        setErrors((prev) => ({ ...prev, [name]: undefined }));
     };
 
     // Handle input changes for billing info
     const handleBillingChange = (e) => {
         let { name, value } = e.target;
         if (name === "zipCode") {
-            // Strip any non-number characters for phone/zip
             value = value.replace(/\D/g, "");
         } else if (name === "firstName" || name === "lastName" || name === "city") {
-            // Only allow letters, spaces, hyphens, and apostrophes for names and city
             value = value.replace(/[^a-zA-Z\s\-\']/g, "");
         } else if (name === "state") {
             value = value.replace(/[^a-zA-Z]/g, "").toUpperCase();
         } else if (name === "phoneNumber") {
-            // Allow numbers, spaces, parentheses, and hyphens
             value = value.replace(/[^\d\s\-\(\)]/g, "");
         }
         setBillingInfo((prevInfo) => ({
@@ -78,46 +73,30 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
     };
 
     // handle form submit
-    const handleFormSubmit = (e) => {
-        e.preventDefault(); // stop browser to refresh the page
-        let newErrors = {}; //local object to catch errors
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        let newErrors = {};
 
         // 1. Card Number checks
         if (!paymentInfo.cardNumber) {
             newErrors.cardNumber = "Card number is required.";
-        } else if (paymentInfo.cardNumber.length < 18) {
+        } else if (paymentInfo.cardNumber.replace(/\s/g, "").length < 16) {
             newErrors.cardNumber = "Please enter a valid card number.";
         }
-
         // 2. Expiration Date checks
         const [month, year] = paymentInfo.expiryDate.split("/");
         const datePattern = /^(0[1-9]|1[0-2])\/[0-9]{2}$/;
-        const monthNum = parseInt(month, 10);
-        const yearNum = parseInt(year, 10) + 2000;
-        const currentYear = new Date().getFullYear();
-        const currentMonth = new Date().getMonth() + 1;
-
         if (!paymentInfo.expiryDate) {
             newErrors.expiryDate = "Expiration date is required.";
-        } else if (
-            paymentInfo.expiryDate.length !== 5 ||
-            !datePattern.test(paymentInfo.expiryDate) ||
-            yearNum < currentYear ||
-            (yearNum === currentYear && monthNum < currentMonth) ||
-            yearNum > currentYear + 10 ||
-            monthNum > 12 ||
-            monthNum < 1
-        ) {
-            newErrors.expiryDate = "Please enter a valid expiration date (MM/YY).";
+        } else if (!datePattern.test(paymentInfo.expiryDate)) {
+            newErrors.expiryDate = "Please enter a valid date (MM/YY).";
         }
-
         // 3. Security Code checks
         if (!paymentInfo.securityCode) {
-            newErrors.securityCode = "Security code is required.";
+            newErrors.securityCode = "Required.";
         } else if (paymentInfo.securityCode.length < 3) {
-            newErrors.securityCode = "Please enter a valid security code.";
+            newErrors.securityCode = "Invalid.";
         }
-
         // 4. Full Name checks
         const nameRegex = /^[a-zA-Z\s\-\']+$/;
         if (!paymentInfo.fullName.trim()) {
@@ -125,69 +104,53 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
         } else if (!nameRegex.test(paymentInfo.fullName)) {
             newErrors.fullName = "Please enter a valid name.";
         }
-
         // 5. Billing checks
         if (!isSameAsShipping) {
-            const {
-                firstName,
-                lastName,
-                address,
-                city,
-                state,
-                zipCode,
-                phoneNumber,
-            } = billingInfo;
-            if (!firstName.trim()) {
-                newErrors.firstName = "First name is required.";
-            } else if (!nameRegex.test(billingInfo.firstName)) {
-                newErrors.firstName = "Please use only letters for the first name.";
-            }
-            if (!lastName.trim()) {
-                newErrors.lastName = "Last name is required.";
-            } else if (!nameRegex.test(billingInfo.lastName)) {
-                newErrors.lastName = "Please use only letters for the last name.";
-            }
-
-            if (!address.trim()) newErrors.address = "Address is required.";
-            if (!city.trim()) newErrors.city = "City is required.";
-            if (!state.trim()) {
-                newErrors.state = "State is required.";
-            } else if (state.trim().length !== 2) {
-                newErrors.state = "State code must be 2 letters.";
-            }
-
-            if (!zipCode.trim()) {
-                newErrors.zipCode = "Zip code is required.";
-            } else if (zipCode.length !== 5) {
-                newErrors.zipCode = "Zip code must be 5 digits.";
-            }
-
-            if (!phoneNumber.trim()) {
-                newErrors.phoneNumber = "Phone number is required.";
-            } else if (phoneNumber.replace(/\D/g, "").length < 10) {
-                // Ignore the symbols during validation check and just count the real numbers
-                newErrors.phoneNumber = "Please enter a valid 10-digit phone number.";
-            }
+            if (!billingInfo.firstName.trim()) newErrors.firstName = "Required.";
+            if (!billingInfo.lastName.trim()) newErrors.lastName = "Required.";
+            if (!billingInfo.address.trim()) newErrors.address = "Required.";
+            if (!billingInfo.city.trim()) newErrors.city = "Required.";
+            if (!billingInfo.state.trim() || billingInfo.state.length !== 2) newErrors.state = "2 letters.";
+            if (billingInfo.zipCode.length !== 5) newErrors.zipCode = "5 digits.";
         }
 
-        // Check if we hit any errors during validation
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
         }
 
-        setErrors({}); // clear errors
-        console.log("Processing order...");
-        console.log("Payment Info:", paymentInfo);
-        console.log("Billing Info:", billingInfo);
-        console.log("Is Same as Shipping:", isSameAsShipping);
-        console.log("Cart Items:", cartItems);
+        setErrors({});
+        setIsLoading(true);
 
-        alert("Order placed successfully!");
-        closeCart();
+        setIsLoading(true);
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/orders/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user_id: 1, // Dummy user ID for now
+                    status: "pending"
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || "Checkout failed");
+            }
+
+            const order = await response.json();
+            setIsLoading(false);
+            onSuccess(order.id);
+        } catch (error) {
+            setIsLoading(false);
+            console.error("Order error:", error);
+            alert(`Order Error: ${error.message}`);
+        }
     };
 
     if (!isOpen) return null;
+
     return (
         <div
             onClick={closeCart}
@@ -207,16 +170,16 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
             <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                    backgroundColor: "white",
+                    backgroundColor: "#f9f8f3f8",
                     position: "relative",
                     display: "block",
                     width: "100%",
                     maxWidth: "1000px",
                     maxHeight: "90vh",
                     overflowY: "auto",
-                    margin: "0 auto",
+                    margin: "20px",
                     padding: "50px",
-                    borderRadius: "10px",
+                    borderRadius: "24px",
                     boxSizing: "border-box",
                 }}
             >
@@ -229,79 +192,74 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
                     &times;
                 </Button>
 
-
                 <div style={{ display: "flex", flexDirection: "row", gap: "30px", marginBlock: "-10px", alignItems: "stretch" }}>
                     <form
                         onSubmit={handleFormSubmit}
                         style={{
-                            flex: 1,
+                            flex: 1.4,
                             display: "flex",
                             flexDirection: "column",
                             paddingTop: "30px",
                         }}
                         noValidate
                     >
-                        <PaymentInformation
-                            paymentInfo={paymentInfo}
-                            handleInputChange={handleInputChange}
-                            errors={errors}
-                        />
-
+                        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                            <PaymentInformation
+                                paymentInfo={paymentInfo}
+                                handleInputChange={handleInputChange}
+                                errors={errors}
+                            />
+                        </div>
                         <>
-                            <h2 style={{
-                                margin: "30px 0",
-                                fontSize: "1.5rem",
-                                color: "#111",
-                                textAlign: "center"
-                            }}>
-                                Billing Address
-                            </h2>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                                <h2 style={{
+                                    margin: "30px 0",
+                                    fontSize: "1.5rem",
+                                    color: "#111",
+                                    textAlign: "left"
+                                }}>
+                                    Billing Address
+                                </h2>
 
-                            <label
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    marginBottom: "15px",
-                                }}
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={isSameAsShipping}
-                                    onChange={(e) => setIsSameAsShipping(e.target.checked)}
+                                <label
                                     style={{
-                                        backgroundColor: "white",
-                                        colorScheme: "light",
-                                        accentColor: "#324dec",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "10px",
+                                        marginBottom: "15px",
                                     }}
-                                />
-                                Same as shipping
-                            </label>
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={isSameAsShipping}
+                                        onChange={(e) => setIsSameAsShipping(e.target.checked)}
+                                        style={{
+                                            backgroundColor: "white",
+                                            colorScheme: "light",
+                                            accentColor: "#324dec",
+                                        }}
+                                    />
+                                    Same as shipping
+                                </label>
 
-                            {!isSameAsShipping && (
-                                <div style={{ display: "flex", flexDirection: "column" }}>
-                                    <AddressFields
-                                        info={billingInfo}
-                                        onChange={handleBillingChange}
-                                        errors={errors}
-                                    />
-                                    <InputField
-                                        label="Phone Number"
-                                        name="phoneNumber"
-                                        value={billingInfo.phoneNumber}
-                                        onChange={handleBillingChange}
-                                        placeholder="Phone Number"
-                                        maxLength={15}
-                                        error={errors.phoneNumber}
-                                    />
-                                </div>
-                            )}
+                                {!isSameAsShipping && (
+                                    <div style={{ display: "flex", flexDirection: "column" }}>
+                                        <AddressFields
+                                            info={billingInfo}
+                                            onChange={handleBillingChange}
+                                            errors={errors}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </>
                     </form>
-                    <OrderSummary 
-                        cartItems={cartItems} 
-                        shippingState={shippingInfo.state} 
-                    />
+                    <div style={{ flex: 1, minWidth: "350px" }}>
+                        <OrderSummary
+                            cartItems={cartItems}
+                            shippingState={shippingInfo.state}
+                        />
+                    </div>
                 </div>
 
                 {/* buttons */}
@@ -321,6 +279,7 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
                             closeCart();
                             openCheckout();
                         }}
+                        disabled={isLoading}
                     >
                         Back
                     </Button>
@@ -329,6 +288,7 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
                         variant="primary"
                         onClick={handleFormSubmit}
                         type="submit"
+                        loading={isLoading}
                         style={{ padding: "12px 40px", minWidth: "250px" }}
                     >
                         Place Order

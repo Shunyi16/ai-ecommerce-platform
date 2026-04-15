@@ -101,6 +101,16 @@ export default function AddressFields({ info, onChange, errors = {} }) {
                     <ErrorMessage message={errors?.country} />
                 </div>
             </div>
+
+            <InputField
+                label="Phone Number"
+                name="phoneNumber"
+                value={info.phoneNumber}
+                onChange={onChange}
+                placeholder="Phone Number"
+                maxLength={15}
+                error={errors?.phoneNumber}
+            />
         </>
     );
 }

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from sqlmodel import Session, select
 from database import engine
-from models import Order, OrderItem, Product, OrderRead, OrderCreate, OrderItemCreate
+from models import Order, OrderItem, Product, OrderRead, OrderCreate, OrderItemCreate, OrderItemRead
 from sqlalchemy.orm import selectinload
 
 router = APIRouter(
@@ -34,50 +34,50 @@ def add_item_to_cart(item_data: OrderItemCreate):
             session.commit()
             session.refresh(exist_order)
 
-        # 3. Create the item and link it DIRECTLY to the order_id
-        db_item = OrderItem(
-            order_id = exist_order.id, # <--- Link established immediately, From backend logic
-            product_id = item_data.product_id, # <--- From the frontend
-            quantity = item_data.quantity, # <--- From the frontend
-            price_at_purchase = item_data.price_at_purchase # <--- From the frontend
+        # 3. Check if the item already exists in this specific cart
+        statement_item = select(OrderItem).where(
+            OrderItem.order_id == exist_order.id,
+            OrderItem.product_id == item_data.product_id
         )
+        existing_item = session.exec(statement_item).first()
+
+        if existing_item:
+            # If it exists, just update the quantity
+            existing_item.quantity += item_data.quantity
+            session.add(existing_item)
+            db_item = existing_item
+        else:
+            # Otherwise, create a brand new row
+            db_item = OrderItem(
+                order_id = exist_order.id,
+                product_id = item_data.product_id,
+                quantity = item_data.quantity,
+                price_at_purchase = item_data.price_at_purchase
+            )
+            session.add(db_item)
 
         # 4. Update Inventory
         product.inventory_count -= item_data.quantity
-
-        # don't need this anymore, just leave it for reference. 
-        #It takes the "pure data" from frontend (item, which is an OrderItemCreate
-        #  schema) and converts it into a full database-ready object 
-        # (db_item, which is an OrderItem table model)
-        # db_item = OrderItem.model_validate(item_data) 
-        
-        # session.add() means Track this object for the next commit
-        # tell database to get ready to insert a new row in order_items table
-        session.add(db_item)
-
-        # tell database to get ready to update the products table
         session.add(product)
 
         session.commit()
-
-        # after commiting, an id is generated, refresh the order_items table
-        #  to show the id to customer
         session.refresh(db_item)
         return db_item
     
     
 # customer reviews the cart
-@router.get("/cart/{user_id}", response_model= list[OrderItem])
+@router.get("/cart/{user_id}", response_model= list[OrderItemRead])
 def view_cart(user_id : int):
     with Session(engine) as session:
         statement = select(Order).where(
             Order.user_id == user_id,
             Order.status == "cart"
-        ).options(selectinload(Order.items)) # .options() is used to load related data, in this case, it loads the items of the order
-        cart_order = session.exec(statement).first() # return a single object
+        ).options(
+            selectinload(Order.items).selectinload(OrderItem.product)
+        )
+        cart_order = session.exec(statement).first()
         if not cart_order:
             return []
-        # a sigle object has .items attribute
         return cart_order.items
     
 
@@ -113,7 +113,9 @@ def create_order(order: OrderCreate):
         statement = select(Order).where(
             Order.user_id == order.user_id,
             Order.status == "cart"
-        ).options(selectinload(Order.items)) # Order.items (The Class Attribute): Used BEFORE the query runs. It acts as a map or an instruction for the database engine.
+        ).options(
+            selectinload(Order.items).selectinload(OrderItem.product)
+        )
         # .first() return a single order object
         db_order = session.exec(statement).first() 
 
@@ -135,7 +137,9 @@ def read_single_order(order_id: int):
         statement = select(Order).where(
             Order.id == order_id,
             Order.status != "cart"
-        ).options(selectinload(Order.items))
+        ).options(
+            selectinload(Order.items).selectinload(OrderItem.product)
+        )
         # Use .first() to get the single object which is what response_model expects
         order = session.exec(statement).first()
         if not order:
@@ -149,7 +153,9 @@ def read_order_history(user_id: int):
         statement = select(Order).where(
             Order.user_id == user_id,
             Order.status != "cart" # <-- Exclude the active shopping cart
-            ).order_by(Order.created_at.desc()).options(selectinload(Order.items)) # <-- Sort newest to oldest
+            ).order_by(Order.created_at.desc()).options(
+                selectinload(Order.items).selectinload(OrderItem.product)
+            ) # <-- Sort newest to oldest
         orders = session.exec(statement).all() # <--  returns a list of orders
         return orders
     

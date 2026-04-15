@@ -4,6 +4,7 @@ import Navbar from './Navbar'
 import CartDrawer from './CartDrawer'
 import Checkout from './Checkout'
 import Payment from './Payment'
+import SuccessModal from './components/Checkout/SuccessModal'
 
 function App() {
   const [products, setProducts] = useState([])
@@ -13,6 +14,9 @@ function App() {
   const [isItemOpen, setIsItemOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false)
+  const [lastOrderId, setLastOrderId] = useState("")
+
   const [shippingInfo, setShippingInfo] = useState({
     firstName: "",
     lastName: "",
@@ -21,16 +25,40 @@ function App() {
     city: "",
     state: "",
     zipCode: "",
+    phoneNumber: "",
     country: ""
   })
 
-  // Fetch the data from your FastAPI backend
+  // Using user_id: 1 as placeholder for currently logged in user
+  const USER_ID = 1;
+
+  // 1. Fetch products from backend
   useEffect(() => {
-    fetch('http://localhost:8000/products/')
+    fetch('http://127.0.0.1:8000/products/')
       .then(response => response.json())
       .then(data => setProducts(data))
-      .catch(error => console.error("Error fetching data:", error))
+      .catch(error => console.error("Error fetching products:", error))
   }, [])
+
+  // 2. Fetch cart from backend
+  const fetchCart = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/orders/cart/${USER_ID}`);
+      const data = await response.json();
+      setCart(data.map(item => ({
+        ...item.product,
+        id: item.product_id,
+        quantitySelected: item.quantity,
+        db_item_id: item.id
+      })));
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+    }
+  }
+
+  useEffect(() => {
+    if (products.length > 0) fetchCart();
+  }, [products])
 
   // Use the URL hash (#cart, #checkout) to manage the browser's back button
   useEffect(() => {
@@ -39,54 +67,49 @@ function App() {
       setIsCartOpen(hash === '#cart');
       setIsCheckoutOpen(hash === '#checkout');
       setIsPaymentOpen(hash === '#payment');
+      if (hash !== '#success') setIsSuccessOpen(false);
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    // Check the URL when the page first loads
     handleHashChange();
-
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const addToCart = (product) => {
-    setCart((prevCart) => {
-      // Check if product is already in the cart
-      const existingProduct = prevCart.find(item => item.id === product.id)
-
-      if (existingProduct) {
-        // If it is, update its quantitySelected by adding the new amount
-        return prevCart.map(item =>
-          item.id === product.id
-            ? { ...item, quantitySelected: item.quantitySelected + product.quantitySelected }
-            : item
-        )
-      } else {
-        // If it's a new product, append it to the cart
-        return [...prevCart, product]
-      }
-    })
+  const addToCart = async (product) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/orders/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: USER_ID,
+          product_id: product.id,
+          quantity: product.quantitySelected || 1,
+          price_at_purchase: product.price
+        })
+      });
+      if (response.ok) fetchCart();
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
   }
 
-  const updateCartItemQuantity = (productId, change) => {
-    setCart(prevCart => {
-      const itemToUpdate = prevCart.find(item => item.id === productId);
-      if (!itemToUpdate) return prevCart;
+  const updateCartItemQuantity = async (productId, change) => {
+    const cartItem = cart.find(item => item.id === productId);
+    if (!cartItem) return;
 
-      const newQuantity = (itemToUpdate.quantitySelected || 1) + change;
+    const newQuantity = cartItem.quantitySelected + change;
 
-      // Enforce inventory limit
-      if (newQuantity > itemToUpdate.inventory_count) return prevCart;
-
-      // Remove item if quantity falls to 0 or below
-      if (newQuantity <= 0) {
-        return prevCart.filter(item => item.id !== productId);
+    if (newQuantity <= 0) {
+      try {
+        await fetch(`http://127.0.0.1:8000/orders/items/${cartItem.db_item_id}`, { method: 'DELETE' });
+        fetchCart();
+      } catch (error) {
+        console.error("Error removing item:", error);
       }
-
-      // Otherwise, update the quantity safely
-      return prevCart.map(item =>
-        item.id === productId ? { ...item, quantitySelected: newQuantity } : item
-      );
-    })
+    } else {
+      // The backend now supports merging, so we can send positive or negative change
+      await addToCart({ ...cartItem, quantitySelected: change });
+    }
   }
 
   const toggleCart = () => {
@@ -107,6 +130,18 @@ function App() {
 
   const togglePayment = () => {
     window.location.hash = isPaymentOpen ? '' : 'payment'
+  }
+
+  const handleOrderSuccess = (orderId) => {
+    setLastOrderId(orderId);
+    setCart([]); // Clear cart
+    setIsSuccessOpen(true);
+    window.location.hash = 'success';
+  }
+
+  const closeSuccess = () => {
+    setIsSuccessOpen(false);
+    window.location.hash = '';
   }
 
   return (
@@ -133,6 +168,12 @@ function App() {
         closeCart={togglePayment} 
         openCheckout={toggleCheckout} 
         shippingInfo={shippingInfo}
+        onSuccess={handleOrderSuccess}
+      />
+      <SuccessModal 
+        isOpen={isSuccessOpen} 
+        orderId={lastOrderId} 
+        closeSuccess={closeSuccess} 
       />
     </div>
 
