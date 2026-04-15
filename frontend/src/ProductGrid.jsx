@@ -2,15 +2,15 @@ import { useState } from 'react';
 
 function ProductCard({ product, addToCart }) {
   // Each card remembers its own quantity state
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
 
   // handleQuantityChange is a function that handles the quantity change
   const handleQuantityChange = (e) => {
     let val = parseInt(e.target.value, 10);
     // If they clear the box, default to 0
-    if (isNaN(val)) val = 1;
+    //if (isNaN(val)) val = 1;
     // Don't let them type negatives or more than inventory
-    if (val < 1) val = 1;
+    if (val < 0) val = 0;
     if (val > product.inventory_count) val = product.inventory_count;
     setQuantity(val);
   };

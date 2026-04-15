@@ -22,6 +22,22 @@ function App() {
       .catch(error => console.error("Error fetching data:", error))
   }, [])
 
+  // Use the URL hash (#cart, #checkout) to manage the browser's back button
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      setIsCartOpen(hash === '#cart');
+      setIsCheckoutOpen(hash === '#checkout');
+      setIsPaymentOpen(hash === '#payment');
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    // Check the URL when the page first loads
+    handleHashChange();
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const addToCart = (product) => {
     setCart((prevCart) => {
       // Check if product is already in the cart
@@ -64,7 +80,7 @@ function App() {
   }
 
   const toggleCart = () => {
-    setIsCartOpen(!isCartOpen)
+    window.location.hash = isCartOpen ? '' : 'cart'
   }
 
   const toggleAccountMenu = () => {
@@ -76,11 +92,11 @@ function App() {
   }
 
   const toggleCheckout = () => {
-    setIsCheckoutOpen(!isCheckoutOpen)
+    window.location.hash = isCheckoutOpen ? '' : 'checkout'
   }
 
   const togglePayment = () => {
-    setIsPaymentOpen(!isPaymentOpen)
+    window.location.hash = isPaymentOpen ? '' : 'payment'
   }
 
   return (
@@ -92,8 +108,8 @@ function App() {
         itemOnClick={toggleItem} />
       <ProductGrid products={products} addToCart={addToCart} />
       <CartDrawer isOpen={isCartOpen} cartItems={cart} closeCart={toggleCart} updateQuantity={updateCartItemQuantity} openCheckout={toggleCheckout} />
-      <Checkout isOpen={isCheckoutOpen} cartItems={cart} closeCart={toggleCheckout} openPayment={togglePayment} />
-      <Payment isOpen={isPaymentOpen} cartItems={cart} closeCart={togglePayment} />
+      <Checkout isOpen={isCheckoutOpen} cartItems={cart} closeCart={toggleCheckout} openPayment={togglePayment} openCart={toggleCart} />
+      <Payment isOpen={isPaymentOpen} cartItems={cart} closeCart={togglePayment} openCheckout={toggleCheckout} />
     </div>
 
   )
