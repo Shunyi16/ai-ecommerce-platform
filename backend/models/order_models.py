@@ -47,6 +47,12 @@ class OrderBase(SQLModel):
     user_id: int = Field(foreign_key="users.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     status: str = Field(default="pending") # e.g., pending, shipped, delivered
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
 
 class Order(OrderBase, table=True):
     __tablename__ = "orders"

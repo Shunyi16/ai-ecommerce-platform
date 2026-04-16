@@ -121,7 +121,16 @@ def create_order(order: OrderCreate):
 
         if not db_order:
             raise HTTPException(status_code=400, detail="No active cart found for this user")
+        
+        # 2. Update Order Details (Shipping Info)
+        db_order.full_name = order.full_name
+        db_order.email = order.email
+        db_order.address = order.address
+        db_order.city = order.city
+        db_order.state = order.state
+        db_order.zip_code = order.zip_code
 
+        # 3. Update Status
         db_order.status = "pending"
 
         session.add(db_order)

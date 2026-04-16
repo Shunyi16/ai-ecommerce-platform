@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import Session, select
 from database import engine
 from models import User, UserCreate, UserUpdate, UserRead
+import uuid
 
 router = APIRouter(
     prefix = "/users",
@@ -55,3 +56,17 @@ def read_users(user_id:int):
         if not user:
             raise HTTPException(status_code=404, detail="User not existed")
         return user
+
+# Create a guest user
+@router.post("/guest")
+def create_guest():
+    with Session(engine) as session:
+        guest = User(
+            email=f"guest_{uuid.uuid4().hex[:6]}@store.com",
+            full_name="Guest User",
+            hashed_password="anonymous_guest"
+        )
+        session.add(guest)
+        session.commit()
+        session.refresh(guest)
+        return {"user_id": guest.id}

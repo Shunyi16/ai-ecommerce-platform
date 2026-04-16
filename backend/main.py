@@ -12,19 +12,24 @@ app = FastAPI(
     version="1.0.0"
 )
 
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-@app.on_event("startup")
+@app.on_event("startup") #FastAPI decorator, it tells the application to run the decorated function (on_startup) exactly once, right as the server starts up but before it begins accepting web requests. 
 def on_startup():
     print("Initializing Database...")
-    # First, make sure all tables exist
+    # calls the function in database.py to create tables
     create_db_and_tables()
     
     # Small delay to ensure DB handles are ready
@@ -42,16 +47,16 @@ def on_startup():
             # 2. Check for Products
             exists = session.exec(select(Product)).first()
             if not exists:
-                print("Seeding default lamps...")
-                lamps = [
+                print("Seeding default products...")
+                products = [
                     Product(name="Modern Floor Lamp", price=129.99, inventory_count=10, description="Sleek and minimalist.", image_url="https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=600"),
                     Product(name="Vintage Desk Lamp", price=45.00, inventory_count=5, description="Antique brass finish.", image_url="https://images.unsplash.com/photo-1534073828943-f801091bb18c?q=80&w=600"),
                     Product(name="Industrial Ceiling Light", price=89.00, inventory_count=12, description="Rustic metal design.", image_url="https://images.unsplash.com/photo-1513506496266-3d241995a04a?q=80&w=600")
                 ]
-                for lamp in lamps:
-                    session.add(lamp)
+                for product in products:
+                    session.add(product)
                 session.commit()
-                print("Lamps seeded successfully.")
+                print("Products seeded successfully.")
     except Exception as e:
         print(f"Warning: Database seeding skipped or failed: {e}")
         # We don't crash here so the server can still start
