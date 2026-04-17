@@ -3,11 +3,24 @@ from sqlmodel import Session, select
 from database import engine
 from models import Order, OrderItem, Product, OrderRead, OrderCreate, OrderItemCreate, OrderItemRead
 from sqlalchemy.orm import selectinload
+import random
+import string
 
 router = APIRouter(
     prefix = "/orders",
     tags = ["Orders & Items"]
 )
+
+def generate_order_number():
+    """Generates a professional order number like AG-83921"""
+    digits = ''.join(random.choices(string.digits, k=5))
+    return f"AG-{digits}"
+
+def generate_tracking_number():
+    """Generates a mock tracking number like TRK-XYZ123"""
+    chars = ''.join(random.choices(string.ascii_uppercase, k=3))
+    digits = ''.join(random.choices(string.digits, k=6))
+    return f"TRK-{chars}{digits}"
 
 # customer add an item to the cart
 @router.post("/items", response_model=OrderItem)
@@ -130,8 +143,10 @@ def create_order(order: OrderCreate):
         db_order.state = order.state
         db_order.zip_code = order.zip_code
 
-        # 3. Update Status
+        # 3. Update Status and Info
         db_order.status = "pending"
+        db_order.order_number = generate_order_number()
+        # tracking_number and carrier stay null until fulfillment
 
         session.add(db_order)
         session.commit()

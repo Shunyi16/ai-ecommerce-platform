@@ -53,6 +53,9 @@ class OrderBase(SQLModel):
     city: Optional[str] = None
     state: Optional[str] = None
     zip_code: Optional[str] = None
+    order_number: Optional[str] = Field(default=None, index=True)
+    tracking_number: Optional[str] = Field(default=None)
+    carrier: Optional[str] = Field(default=None)
 
 class Order(OrderBase, table=True):
     __tablename__ = "orders"
