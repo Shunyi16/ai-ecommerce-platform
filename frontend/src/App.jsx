@@ -5,6 +5,7 @@ import CartDrawer from './CartDrawer'
 import Checkout from './Checkout'
 import Payment from './Payment'
 import SuccessModal from './components/Checkout/SuccessModal'
+import { getOrInitializeUserId } from './utils/userUtils'
 
 function App() {
   const [products, setProducts] = useState([])
@@ -16,6 +17,7 @@ function App() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [isSuccessOpen, setIsSuccessOpen] = useState(false)
   const [lastOrderId, setLastOrderId] = useState("")
+  const [currentUserId, setCurrentUserId] = useState(null)
 
   const [shippingInfo, setShippingInfo] = useState({
     firstName: "",
@@ -29,8 +31,14 @@ function App() {
     country: ""
   })
 
-  // Using user_id: 1 as placeholder for currently logged in user
-  const USER_ID = 1;
+  useEffect(() => {
+    // async: tells javascript, if see await, pause and wait for the result
+    const initUser = async () => { // const initUser... is preparing the task
+      const id = await getOrInitializeUserId();
+      setCurrentUserId(id);
+    };
+    initUser(); // initUser is starting the task
+  }, [])
 
   // 1. Fetch products from backend
   useEffect(() => {
@@ -43,7 +51,7 @@ function App() {
   // 2. Fetch cart from backend
   const fetchCart = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/orders/cart/${USER_ID}`);
+      const response = await fetch(`http://127.0.0.1:8000/orders/cart/${currentUserId}`);
       const data = await response.json();
       setCart(data.map(item => ({
         ...item.product,
@@ -57,8 +65,8 @@ function App() {
   }
 
   useEffect(() => {
-    if (products.length > 0) fetchCart();
-  }, [products])
+    if (products.length > 0 && currentUserId) fetchCart();
+  }, [products, currentUserId])
 
   // Use the URL hash (#cart, #checkout) to manage the browser's back button
   useEffect(() => {
@@ -81,7 +89,7 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: USER_ID,
+          user_id: currentUserId,
           product_id: product.id,
           quantity: product.quantitySelected || 1,
           price_at_purchase: product.price
@@ -153,27 +161,27 @@ function App() {
         itemOnClick={toggleItem} />
       <ProductGrid products={products} addToCart={addToCart} />
       <CartDrawer isOpen={isCartOpen} cartItems={cart} closeCart={toggleCart} updateQuantity={updateCartItemQuantity} openCheckout={toggleCheckout} />
-      <Checkout 
-        isOpen={isCheckoutOpen} 
-        cartItems={cart} 
-        closeCart={toggleCheckout} 
-        openPayment={togglePayment} 
-        openCart={toggleCart} 
+      <Checkout
+        isOpen={isCheckoutOpen}
+        cartItems={cart}
+        closeCart={toggleCheckout}
+        openPayment={togglePayment}
+        openCart={toggleCart}
         shippingInfo={shippingInfo}
         setShippingInfo={setShippingInfo}
       />
-      <Payment 
-        isOpen={isPaymentOpen} 
-        cartItems={cart} 
-        closeCart={togglePayment} 
-        openCheckout={toggleCheckout} 
+      <Payment
+        isOpen={isPaymentOpen}
+        cartItems={cart}
+        closeCart={togglePayment}
+        openCheckout={toggleCheckout}
         shippingInfo={shippingInfo}
         onSuccess={handleOrderSuccess}
       />
-      <SuccessModal 
-        isOpen={isSuccessOpen} 
-        orderId={lastOrderId} 
-        closeSuccess={closeSuccess} 
+      <SuccessModal
+        isOpen={isSuccessOpen}
+        orderId={lastOrderId}
+        closeSuccess={closeSuccess}
       />
     </div>
 
