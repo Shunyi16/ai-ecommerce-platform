@@ -1,8 +1,8 @@
 import React from "react";
 import Button from "../common/Button";
 
-export default function SuccessModal({ isOpen, orderId, closeSuccess }) {
-    if (!isOpen) return null;
+export default function SuccessModal({ isOpen, order, closeSuccess }) {
+    if (!isOpen || !order) return null;
 
     return (
         <div
@@ -23,17 +23,18 @@ export default function SuccessModal({ isOpen, orderId, closeSuccess }) {
                 style={{
                     backgroundColor: "white",
                     padding: "50px",
-                    borderRadius: "10px",
+                    borderRadius: "24px",
                     maxWidth: "500px",
                     width: "90%",
                     textAlign: "center",
-                    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
                 }}
             >
                 <div style={{
                     width: "80px",
                     height: "80px",
-                    backgroundColor: "#f0f0f0",
+                    backgroundColor: "#f0fdf4",
+                    color: "#22c55e",
                     borderRadius: "50%",
                     display: "flex",
                     justifyContent: "center",
@@ -44,18 +45,27 @@ export default function SuccessModal({ isOpen, orderId, closeSuccess }) {
                     ✓
                 </div>
                 
-                <h2 style={{ fontSize: "1.5rem", marginBottom: "15px", color: "#111" }}>Order Placed!</h2>
-                <p style={{ fontSize: "1rem", color: "#666", marginBottom: "10px" }}>
+                <h2 style={{ fontSize: "1.8rem", marginBottom: "15px", color: "#111", fontWeight: "700" }}>Order Placed!</h2>
+                <p style={{ fontSize: "1rem", color: "#666", marginBottom: "30px", lineHeight: "1.5" }}>
                     Thank you for your purchase. We've received your order and are getting it ready.
                 </p>
-                <p style={{ fontWeight: "bold", color: "#324dec", fontSize: "1.1rem", marginBottom: "40px" }}>
-                    Order ID: {orderId}
-                </p>
+
+                <div style={{ 
+                    backgroundColor: "#f9fbfd", 
+                    padding: "20px", 
+                    borderRadius: "16px", 
+                    marginBottom: "30px",
+                    textAlign: "center",
+                    border: "1px solid #eef2f6"
+                }}>
+                    <span style={{ color: "#64748b", fontSize: "0.9rem", display: "block", marginBottom: "5px" }}>Order Number</span>
+                    <span style={{ fontWeight: "700", color: "#1e293b", fontSize: "1.4rem" }}>{order.order_number}</span>
+                </div>
 
                 <Button
                     variant="primary"
                     onClick={closeSuccess}
-                    style={{ width: "100%" }}
+                    style={{ width: "100%", padding: "14px", borderRadius: "12px" }}
                 >
                     Continue Shopping
                 </Button>

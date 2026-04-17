@@ -124,13 +124,20 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
 
         setIsLoading(true);
 
+        const activeUserId = localStorage.getItem("active_user_id");
+
         try {
             const response = await fetch("http://127.0.0.1:8000/orders/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    user_id: 1, // Dummy user ID for now
-                    status: "pending"
+                    user_id: parseInt(activeUserId),
+                    full_name: `${shippingInfo.firstName} ${shippingInfo.lastName}`,
+                    email: shippingInfo.email,
+                    address: shippingInfo.address,
+                    city: shippingInfo.city,
+                    state: shippingInfo.state,
+                    zip_code: shippingInfo.zipCode
                 }),
             });
 
@@ -141,7 +148,27 @@ export default function Payment({ isOpen, cartItems, closeCart, openCheckout, sh
 
             const order = await response.json();
             setIsLoading(false);
-            onSuccess(order.id);
+            
+            // Reset local states for Next Guest User
+            setPaymentInfo({
+                cardNumber: "",
+                fullName: "",
+                expiryDate: "",
+                securityCode: "",
+            });
+            setBillingInfo({
+                firstName: "",
+                lastName: "",
+                address: "",
+                city: "",
+                state: "",
+                zipCode: "",
+                phoneNumber: "",
+                country: ""
+            });
+            setIsSameAsShipping(false);
+
+            onSuccess(order); // Pass the whole order object
         } catch (error) {
             setIsLoading(false);
             console.error("Order error:", error);

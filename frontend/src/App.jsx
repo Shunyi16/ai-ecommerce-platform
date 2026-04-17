@@ -16,7 +16,7 @@ function App() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [isSuccessOpen, setIsSuccessOpen] = useState(false)
-  const [lastOrderId, setLastOrderId] = useState("")
+  const [lastOrder, setLastOrder] = useState(null)
   const [currentUserId, setCurrentUserId] = useState(null)
 
   const [shippingInfo, setShippingInfo] = useState({
@@ -140,9 +140,28 @@ function App() {
     window.location.hash = isPaymentOpen ? '' : 'payment'
   }
 
-  const handleOrderSuccess = (orderId) => {
-    setLastOrderId(orderId);
+  const handleOrderSuccess = (order) => {
+    setLastOrder(order);
     setCart([]); // Clear cart
+    
+    // Reset Shipping Info for privacy
+    setShippingInfo({
+      firstName: "",
+      lastName: "",
+      email: "",
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      phoneNumber: "",
+      country: ""
+    });
+
+    localStorage.removeItem("active_user_id"); // 1. CLEAR THE SESSION
+    
+    // 2. Immediately generate a NEW ID for the next potential order
+    getOrInitializeUserId().then(id => setCurrentUserId(id));
+
     setIsSuccessOpen(true);
     window.location.hash = 'success';
   }
@@ -180,7 +199,7 @@ function App() {
       />
       <SuccessModal
         isOpen={isSuccessOpen}
-        orderId={lastOrderId}
+        order={lastOrder}
         closeSuccess={closeSuccess}
       />
     </div>
