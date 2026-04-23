@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import create_db_and_tables, engine
-from routers import users, products, orders
+from routers import users, products, orders, categories
 from sqlmodel import Session, select
-from models import User, Product
+from models import User, Product, Category, ProductCategoryLink
 import time
 
 app = FastAPI(
@@ -37,35 +37,35 @@ def on_startup():
 
     try:
         with Session(engine) as session:
-            # 1. Check for User 1
-            user = session.get(User, 1)
-            if not user:
-                print("Seeding default user...")
+            # 1. Seed Default User
+            if not session.get(User, 1):
                 session.add(User(id=1, email="guest@example.com", full_name="Guest User", hashed_password="hashed"))
                 session.commit()
 
-            # 2. Check for Products
-            exists = session.exec(select(Product)).first()
-            if not exists:
-                print("Seeding default products...")
-                products = [
-                    Product(name="Modern Floor Lamp", price=129.99, inventory_count=10, description="Sleek and minimalist.", image_url="https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=600"),
-                    Product(name="Vintage Desk Lamp", price=45.00, inventory_count=5, description="Antique brass finish.", image_url="https://images.unsplash.com/photo-1534073828943-f801091bb18c?q=80&w=600"),
-                    Product(name="Industrial Ceiling Light", price=89.00, inventory_count=12, description="Rustic metal design.", image_url="https://images.unsplash.com/photo-1513506496266-3d241995a04a?q=80&w=600")
+            # 2. Seed Categories
+            if not session.exec(select(Category)).first():
+                categories = [
+                    Category(name="Chandeliers & Pendants"),
+                    Category(name="Flush Mounts"),
+                    Category(name="Lamps"),
+                    Category(name="Bathroom Lights"),
+                    Category(name="Wall Lights"),
+                    Category(name="Outdoor Lights"),
+                    Category(name="Sale")
                 ]
-                for product in products:
-                    session.add(product)
+                for c in categories:
+                    session.add(c)
                 session.commit()
-                print("Products seeded successfully.")
+
     except Exception as e:
         print(f"Warning: Database seeding skipped or failed: {e}")
-        # We don't crash here so the server can still start
         pass
 
 # Plug in the Routers
 app.include_router(users.router)
 app.include_router(products.router)
 app.include_router(orders.router)
+app.include_router(categories.router)
 
 @app.get("/")
 def root():
