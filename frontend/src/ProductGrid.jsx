@@ -128,7 +128,7 @@ export default function ProductGrid({ products, addToCart }) {
   return (
     <div style={{
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", /* Creates side-by-side columns */
+      gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", /* Creates side-by-side columns */
       gap: "25px"
     }}>
       {products.map((product) => (

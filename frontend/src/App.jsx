@@ -18,6 +18,7 @@ function App() {
   const [isSuccessOpen, setIsSuccessOpen] = useState(false)
   const [lastOrder, setLastOrder] = useState(null)
   const [currentUserId, setCurrentUserId] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
   const [shippingInfo, setShippingInfo] = useState({
     firstName: "",
@@ -42,11 +43,12 @@ function App() {
 
   // 1. Fetch products from backend
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/products/')
+    const url = selectedCategory ? `http://127.0.0.1:8000/categories/${selectedCategory.id}/products` : 'http://127.0.0.1:8000/products/';
+    fetch(url)
       .then(response => response.json())
       .then(data => setProducts(data))
       .catch(error => console.error("Error fetching products:", error))
-  }, [])
+  }, [selectedCategory])
 
   // 2. Fetch cart from backend
   const fetchCart = async () => {
@@ -143,7 +145,7 @@ function App() {
   const handleOrderSuccess = (order) => {
     setLastOrder(order);
     setCart([]); // Clear cart
-    
+
     // Reset Shipping Info for privacy
     setShippingInfo({
       firstName: "",
@@ -158,7 +160,7 @@ function App() {
     });
 
     localStorage.removeItem("active_user_id"); // 1. CLEAR THE SESSION
-    
+
     // 2. Immediately generate a NEW ID for the next potential order
     getOrInitializeUserId().then(id => setCurrentUserId(id));
 
@@ -177,7 +179,8 @@ function App() {
         cartCount={cart.reduce((total, item) => total + (item.quantitySelected || 1), 0)}
         cartOnClick={toggleCart}
         accountOnClick={toggleAccountMenu}
-        itemOnClick={toggleItem} />
+        itemOnClick={setSelectedCategory}
+        logoOnClick={() => setSelectedCategory(null)} />
       <ProductGrid products={products} addToCart={addToCart} />
       <CartDrawer isOpen={isCartOpen} cartItems={cart} closeCart={toggleCart} updateQuantity={updateCartItemQuantity} openCheckout={toggleCheckout} />
       <Checkout
