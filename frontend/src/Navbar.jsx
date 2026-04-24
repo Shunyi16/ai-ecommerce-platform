@@ -1,7 +1,7 @@
 import SearchBar from "./SearchBar";
 import { useState, useEffect } from "react";
 
-export default function Navbar({ cartCount, cartOnClick, accountOnClick, itemOnClick, logoOnClick }) {
+export default function Navbar({ cartCount, cartOnClick, accountOnClick, itemOnClick, logoOnClick, onSearch }) {
     const [categories, setCategories] = useState([]);
     const [hoveredCategory, setHoveredCategory] = useState(null);
 
@@ -15,7 +15,7 @@ export default function Navbar({ cartCount, cartOnClick, accountOnClick, itemOnC
     return (
         <header style={{
             width: "100%",
-            marginBottom: "40px",
+            marginBottom: "10px",
             backgroundColor: "#fff",
             boxShadow: "0 2px 15px rgba(0,0,0,0.03)"
         }}>
@@ -29,7 +29,7 @@ export default function Navbar({ cartCount, cartOnClick, accountOnClick, itemOnC
             }}>
                 {/* 1. Left: Search (Aligned to Grid Edge) */}
                 <div style={{ flex: 1, display: "flex", justifyContent: "flex-start" }}>
-                    <SearchBar />
+                    <SearchBar onSearch={onSearch} />
                 </div>
 
                 {/* 2. Center: Logo (Refined Compact Wordmark) */}
@@ -57,13 +57,13 @@ export default function Navbar({ cartCount, cartOnClick, accountOnClick, itemOnC
 
                 {/* 3. Right: Interaction Icons (Clean SVG Style) */}
                 <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", gap: "35px" }}>
-                    <div 
-                        onClick={accountOnClick} 
-                        style={{ 
-                            cursor: "pointer", 
-                            display: "flex", 
-                            alignItems: "center", 
-                            gap: "10px", 
+                    <div
+                        onClick={accountOnClick}
+                        style={{
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
                             fontSize: "0.85rem",
                             textTransform: "uppercase",
                             letterSpacing: "1px",
@@ -79,13 +79,13 @@ export default function Navbar({ cartCount, cartOnClick, accountOnClick, itemOnC
                         </svg>
                         <span>Account</span>
                     </div>
-                    <div 
-                        onClick={cartOnClick} 
-                        style={{ 
-                            cursor: "pointer", 
-                            display: "flex", 
-                            alignItems: "center", 
-                            gap: "10px", 
+                    <div
+                        onClick={cartOnClick}
+                        style={{
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
                             fontSize: "0.85rem",
                             textTransform: "uppercase",
                             letterSpacing: "1px",
@@ -109,13 +109,14 @@ export default function Navbar({ cartCount, cartOnClick, accountOnClick, itemOnC
             <nav style={{
                 display: "flex",
                 justifyContent: "center",
-                gap: "45px",
-                padding: "18px 0",
-                fontSize: "0.85rem",
-                fontWeight: "500",
+                gap: "30px",
+                fontSize: "0.80rem",
+                fontWeight: "bold",
                 letterSpacing: "2px",
                 textTransform: "uppercase",
-                borderTop: "1px solid #f2f2f2",
+                borderBottom: "1px solid #e0dfdfff",
+
+                padding: "18px 10px"
             }}>
                 {categories.map((category) => (
                     <span

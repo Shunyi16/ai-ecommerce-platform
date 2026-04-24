@@ -12,13 +12,13 @@ function App() {
   const [cart, setCart] = useState([])
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
-  const [isItemOpen, setIsItemOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [isSuccessOpen, setIsSuccessOpen] = useState(false)
   const [lastOrder, setLastOrder] = useState(null)
   const [currentUserId, setCurrentUserId] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [searchItem, setSearchItem] = useState("")
 
   const [shippingInfo, setShippingInfo] = useState({
     firstName: "",
@@ -56,7 +56,7 @@ function App() {
       const response = await fetch(`http://127.0.0.1:8000/orders/cart/${currentUserId}`);
       const data = await response.json();
       setCart(data.map(item => ({
-        ...item.product,
+        ...item.product, //
         id: item.product_id,
         quantitySelected: item.quantity,
         db_item_id: item.id
@@ -66,18 +66,20 @@ function App() {
     }
   }
 
+  // restores user's shopping cart from backend
   useEffect(() => {
     if (products.length > 0 && currentUserId) fetchCart();
   }, [products, currentUserId])
 
+  //  reaction for cart, checkout, payment, success
   // Use the URL hash (#cart, #checkout) to manage the browser's back button
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash;
-      setIsCartOpen(hash === '#cart');
-      setIsCheckoutOpen(hash === '#checkout');
-      setIsPaymentOpen(hash === '#payment');
-      if (hash !== '#success') setIsSuccessOpen(false);
+      const hash = window.location.hash; //This line looks at the current URL and grabs everything from the # onward
+      setIsCartOpen(hash === '#cart'); //If the hash is exactly '#cart', it sets the cart state to true
+      setIsCheckoutOpen(hash === '#checkout'); //If the hash is exactly '#checkout', it sets the checkout state to true
+      setIsPaymentOpen(hash === '#payment'); //If the hash is exactly '#payment', it sets the payment state to true
+      if (hash !== '#success') setIsSuccessOpen(false); //If the hash is not '#success', it sets the success state to false
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -88,9 +90,9 @@ function App() {
   const addToCart = async (product) => {
     try {
       const response = await fetch('http://127.0.0.1:8000/orders/items', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        method: 'POST', //tells the server the type of action is taken
+        headers: { 'Content-Type': 'application/json' }, //tells the server the type of data being sent
+        body: JSON.stringify({ //converts the JavaScript object into a JSON string
           user_id: currentUserId,
           product_id: product.id,
           quantity: product.quantitySelected || 1,
@@ -103,7 +105,10 @@ function App() {
     }
   }
 
-  const updateCartItemQuantity = async (productId, change) => {
+  const updateCartItemQuantity = async (productId, change) => { //async allows this function to "pause" and wait for the database to finish updating
+    //.find() is a built-in JavaScript tool; 
+    // item => ... This is a "lookup rule." It tells the code: "Look at each item and examine its contents.";
+    // Stop once you find the item whose ID matches the number
     const cartItem = cart.find(item => item.id === productId);
     if (!cartItem) return;
 
@@ -122,16 +127,13 @@ function App() {
     }
   }
 
+  // trigger to open cart
   const toggleCart = () => {
     window.location.hash = isCartOpen ? '' : 'cart'
   }
 
   const toggleAccountMenu = () => {
     setIsAccountMenuOpen(!isAccountMenuOpen)
-  }
-
-  const toggleItem = () => {
-    setIsItemOpen(!isItemOpen)
   }
 
   const toggleCheckout = () => {
@@ -141,6 +143,15 @@ function App() {
   const togglePayment = () => {
     window.location.hash = isPaymentOpen ? '' : 'payment'
   }
+
+  const searchProducts = products.filter(p => {
+    if (!searchItem.trim()) return true;
+
+    const searchWords = searchItem.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+    const productName = p.name.toLowerCase();
+
+    return searchWords.some(word => productName.includes(word));
+  });
 
   const handleOrderSuccess = (order) => {
     setLastOrder(order);
@@ -160,10 +171,8 @@ function App() {
     });
 
     localStorage.removeItem("active_user_id"); // 1. CLEAR THE SESSION
-
     // 2. Immediately generate a NEW ID for the next potential order
     getOrInitializeUserId().then(id => setCurrentUserId(id));
-
     setIsSuccessOpen(true);
     window.location.hash = 'success';
   }
@@ -173,15 +182,20 @@ function App() {
     window.location.hash = '';
   }
 
+
   return (
-    <div style={{ padding: "30px", fontFamily: "sans-serif", maxWidth: "1000px", margin: "0 auto", width: "100%" }}> {/* outermost grid wrap */}
+    <div style={{ padding: "20px 20px 20px 20px", fontFamily: "sans-serif", maxWidth: "1200px", margin: "0 auto" }}> {/* outermost grid wrap */}
       <Navbar
         cartCount={cart.reduce((total, item) => total + (item.quantitySelected || 1), 0)}
         cartOnClick={toggleCart}
         accountOnClick={toggleAccountMenu}
         itemOnClick={setSelectedCategory}
-        logoOnClick={() => setSelectedCategory(null)} />
-      <ProductGrid products={products} addToCart={addToCart} />
+        logoOnClick={() => {
+          setSelectedCategory(null);
+          setSearchItem("");
+        }}
+        onSearch={setSearchItem} />
+      <ProductGrid products={searchProducts} addToCart={addToCart} />
       <CartDrawer isOpen={isCartOpen} cartItems={cart} closeCart={toggleCart} updateQuantity={updateCartItemQuantity} openCheckout={toggleCheckout} />
       <Checkout
         isOpen={isCheckoutOpen}

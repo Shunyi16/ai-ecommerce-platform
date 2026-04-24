@@ -91,7 +91,7 @@ body {
 
 /* This targets the <div id="root"> that React automatically creates to hold your app */
 #root {
-  width: 1126px;
+  /* width: 1126px; */
   /* Forces the box to be exactly 1126px wide */
   max-width: 100%;
   /* Prevents it from breaking on small screens */
@@ -99,7 +99,7 @@ body {
   /* Centers the box perfectly in the middle of the screen */
   text-align: center;
   /* Centers all text inside it */
-  border-inline: 1px solid var(--border);
+  /* border-inline: 1px solid var(--border); */
   /* Puts a vertical line on the left and right edges */
   min-height: 100svh;
   /* Forces the box to be at least as tall as the screen */
@@ -187,8 +187,8 @@ input[type=number] {
 
 /* Override default browser autofill styling */
 input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
 input:-webkit-autofill:active,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
