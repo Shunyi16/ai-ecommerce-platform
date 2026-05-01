@@ -19,6 +19,8 @@ function App() {
   const [currentUserId, setCurrentUserId] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [searchItem, setSearchItem] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
 
   const [shippingInfo, setShippingInfo] = useState({
     firstName: "",
@@ -43,12 +45,24 @@ function App() {
 
   // 1. Fetch products from backend
   useEffect(() => {
-    const url = selectedCategory ? `http://127.0.0.1:8000/categories/${selectedCategory.id}/products` : 'http://127.0.0.1:8000/products/';
+    const skip = (currentPage - 1) * 15;
+    const limit = 15;
+    const url = selectedCategory
+      ? `http://127.0.0.1:8000/categories/${selectedCategory.id}/products?skip=${skip}&limit=${limit}`
+      : `http://127.0.0.1:8000/products/?skip=${skip}&limit=${limit}`;
     fetch(url)
       .then(response => response.json())
-      .then(data => setProducts(data))
+      .then(data => {
+        setProducts(data.items);
+        setTotalCount(data.totalCount);
+      })
       .catch(error => console.error("Error fetching products:", error))
-  }, [selectedCategory])
+  }, [selectedCategory, currentPage])
+
+  // Reset to page 1 whenever category or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchItem]);
 
   // 2. Fetch cart from backend
   const fetchCart = async () => {
@@ -195,7 +209,7 @@ function App() {
           setSearchItem("");
         }}
         onSearch={setSearchItem} />
-      <ProductGrid products={searchProducts} addToCart={addToCart} />
+      <ProductGrid products={searchProducts} addToCart={addToCart} currentPage={currentPage} setCurrentPage={setCurrentPage} totalCount={totalCount} />
       <CartDrawer isOpen={isCartOpen} cartItems={cart} closeCart={toggleCart} updateQuantity={updateCartItemQuantity} openCheckout={toggleCheckout} />
       <Checkout
         isOpen={isCheckoutOpen}

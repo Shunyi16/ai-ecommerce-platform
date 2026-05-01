@@ -128,17 +128,80 @@ function ProductCard({ product, addToCart }) {
   );
 }
 
-export default function ProductGrid({ products, addToCart }) {
+export default function ProductGrid({ products, addToCart, currentPage, setCurrentPage, totalCount }) {
+  const totalPages = Math.ceil(totalCount / 15);
+
   return (
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", /* Creates side-by-side columns */
-      gap: "25px"
-    }}>
-      {products.map((product) => (
-        /* Render the extracted card component! */
-        <ProductCard key={product.id} product={product} addToCart={addToCart} />
-      ))}
-    </div>
+    <>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", /* Creates side-by-side columns */
+        gap: "25px"
+      }}>
+        {products.map((product) => (
+          /* Render the extracted card component! */
+          <ProductCard key={product.id} product={product} addToCart={addToCart} />
+        ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div style={{
+        marginTop: '40px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '20px',
+        padding: '20px 0'
+      }}>
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(prev => prev - 1)}
+          style={{
+            padding: '10px 25px',
+            borderRadius: '12px',
+            border: '1px solid #e0e0e0',
+            backgroundColor: currentPage === 1 ? '#f9f9f9' : 'white',
+            color: currentPage === 1 ? '#999' : '#222',
+            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+            fontWeight: '600',
+            fontSize: '0.9rem',
+            transition: 'all 0.2s ease',
+            boxShadow: currentPage === 1 ? 'none' : '0 2px 4px rgba(0,0,0,0.05)'
+          }}
+        >
+          Previous
+        </button>
+
+        <span style={{
+          fontWeight: '600',
+          color: '#444',
+          fontSize: '0.9rem',
+          backgroundColor: '#f0f2f5',
+          padding: '8px 16px',
+          borderRadius: '20px'
+        }}>
+          Page {currentPage} of {totalPages || 1}
+        </span>
+
+        <button
+          disabled={currentPage >= totalPages}
+          onClick={() => setCurrentPage(prev => prev + 1)}
+          style={{
+            padding: '10px 25px',
+            borderRadius: '12px',
+            border: '1px solid #e0e0e0',
+            backgroundColor: currentPage >= totalPages ? '#f9f9f9' : 'white',
+            color: currentPage >= totalPages ? '#999' : '#222',
+            cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+            fontWeight: '600',
+            fontSize: '0.9rem',
+            transition: 'all 0.2s ease',
+            boxShadow: currentPage >= totalPages ? 'none' : '0 2px 4px rgba(0,0,0,0.05)'
+          }}
+        >
+          Next
+        </button>
+      </div>
+    </>
   )
 }
