@@ -45,3 +45,8 @@ class ProductUpdate(SQLModel):
     inventory_count: Optional[int] = None
     is_active: Optional[bool] = None
     category_ids: Optional[List[int]] = None # IDs to update relationships
+
+class ProductPaginationRead(SQLModel):
+    """Schema for paginated product results"""
+    items: List[ProductRead]
+    totalCount: int

@@ -1,8 +1,8 @@
 # products.py (Revised)
 from fastapi import APIRouter, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from database import engine
-from models import Product, ProductCreate, ProductRead, ProductUpdate # New Imports
+from models import Product, ProductCreate, ProductRead, ProductUpdate, ProductPaginationRead
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -32,9 +32,15 @@ def update_product(product_id: int, product_update: ProductUpdate):
         session.refresh(db_product)
         return db_product
 
-@router.get("/", response_model=list[ProductRead])
-def read_products():
+@router.get("/", response_model=ProductPaginationRead)
+def read_products(skip: int = 0, limit: int = 15):
     with Session(engine) as session:
-        # Note: We filter for active products here!
-        statement = select(Product).where(Product.is_active == True).order_by(Product.id)
-        return session.exec(statement).all()
+        # 1. Get the total count of ACTIVE products
+        count_statement = select(func.count(Product.id)).where(Product.is_active == True)
+        total = session.exec(count_statement).one()
+
+        # 2. Get the paginated results (with consistent ordering!)
+        statement = select(Product).where(Product.is_active == True).order_by(Product.id).offset(skip).limit(limit)
+        results = session.exec(statement).all()
+
+        return {'items': results, 'totalCount': total}
