@@ -78,7 +78,7 @@ export default function Navbar({ cartCount, cartOnClick, accountOnClick, itemOnC
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                         <span>Account "this is just for syntecdocs generated docs storage test purpose 10"</span>
-                        <span>Account "this is for syntecdocs generated docs sync test purpose 2"</span>
+                        <span>Account "this is for syntecdocs generated docs sync test purpose 3"</span>
                     </div>
                     <div
                         onClick={cartOnClick}
