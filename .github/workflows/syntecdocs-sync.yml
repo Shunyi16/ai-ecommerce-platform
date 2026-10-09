@@ -1,0 +1,45 @@
+name: Syntecdocs Sync
+
+# Trigger
+# Instead of triggering on a 'push', this triggers on a 'repository_dispatch'. 
+# This is GitHub's official way of letting external APIs trigger an Action.
+on:
+  repository_dispatch:
+    types: [syntecdocs_sync_completed]
+
+# 2. Permissions
+# grant 'write' permissions here so the Action can commit the markdown file.
+permissions:
+  contents: write
+
+jobs:
+  sync-documentation:
+    runs-on: ubuntu-latest
+
+    steps: 
+      # 3. Check out the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: technical-documents # Change to your branch name
+
+      # 4. Download the document
+      - name: Download Generated document
+        run: |
+          DOCUMENT_ID="${{ github.event.client_payload.document_id }}"
+          TARGET_FILE_PATH="${{ github.event.client_payload.file_path }}"
+          
+          mkdir -p $(dirname "$TARGET_FILE_PATH")
+          
+          # NOTE: replace 'api.syntecdocs.com' with your real backend API domain
+          curl -sS "https://wannabe-poppy-opossum.ngrok-free.dev/api/documents/$DOCUMENT_ID/completed" > "$TARGET_FILE_PATH"
+
+      # 5. Commit and Push Changes
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "SyntecDocs Sync"
+          git config --global user.email "sync@syntecdocs.com"
+          
+          git add .
+          git diff --quiet && git diff --staged --quiet || git commit -m "docs: Update documentation for ${{ github.event.client_payload.file_path }}"
+          git push
